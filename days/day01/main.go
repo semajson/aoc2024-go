@@ -58,8 +58,8 @@ func Solve2(input_lines string) int {
 		}
 	}
 
+	// Calc similarity score
 	similarity_score := 0
-
 	for _, num := range left_nums {
 		count, exists := right_count[num]
 		if exists {
