@@ -8,17 +8,7 @@ import (
 
 func Solve1(input_lines string) int {
 	// Process the input
-	left_nums := []int{}
-	right_nums := []int{}
-
-	for _, line := range strings.Split(input_lines, "\n") {
-		nums := strings.Fields(line)
-		left_num, _ := strconv.Atoi(nums[0])
-		left_nums = append(left_nums, left_num)
-
-		right_num, _ := strconv.Atoi(nums[1])
-		right_nums = append(right_nums, right_num)
-	}
+	left_nums, right_nums := parse_input(input_lines)
 
 	// Calc difference when sorted
 	sort.Ints(left_nums)
@@ -26,7 +16,7 @@ func Solve1(input_lines string) int {
 
 	diff_sum := 0
 
-	for i, _ := range left_nums {
+	for i := range left_nums {
 		diff_sum += abs(left_nums[i], right_nums[i])
 	}
 
@@ -35,17 +25,7 @@ func Solve1(input_lines string) int {
 
 func Solve2(input_lines string) int {
 	// Process the input
-	left_nums := []int{}
-	right_nums := []int{}
-
-	for _, line := range strings.Split(input_lines, "\n") {
-		nums := strings.Fields(line)
-		left_num, _ := strconv.Atoi(nums[0])
-		left_nums = append(left_nums, left_num)
-
-		right_num, _ := strconv.Atoi(nums[1])
-		right_nums = append(right_nums, right_num)
-	}
+	left_nums, right_nums := parse_input(input_lines)
 
 	// Count numbers in right
 	right_count := make(map[int]int)
@@ -76,4 +56,18 @@ func abs(a int, b int) int {
 	} else {
 		return b - a
 	}
+}
+func parse_input(input_lines string) ([]int, []int) {
+	left_nums := []int{}
+	right_nums := []int{}
+
+	for _, line := range strings.Split(input_lines, "\n") {
+		nums := strings.Fields(line)
+		left_num, _ := strconv.Atoi(nums[0])
+		left_nums = append(left_nums, left_num)
+
+		right_num, _ := strconv.Atoi(nums[1])
+		right_nums = append(right_nums, right_num)
+	}
+	return left_nums, right_nums
 }
