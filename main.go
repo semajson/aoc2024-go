@@ -25,8 +25,8 @@ func main() {
 		result_1 = day01.Solve1(get_input("01"))
 		result_2 = day01.Solve2(get_input("01"))
 	case "2":
-		result_1 = day02.Solve1(get_input("01"))
-		result_2 = day02.Solve2(get_input("01"))
+		result_1 = day02.Solve1(get_input("02"))
+		result_2 = day02.Solve2(get_input("02"))
 	default:
 		fmt.Printf("Solution for day %s is not implemented.\n", day)
 		os.Exit(1)

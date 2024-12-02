@@ -1,53 +1,105 @@
 package day02
 
 import (
-	"sort"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
 func Solve1(input_lines string) int {
 	// Process the input
-	left_nums, right_nums := parse_input(input_lines)
+	reports := parse_input(input_lines)
 
-	// Calc difference when sorted
-	sort.Ints(left_nums)
-	sort.Ints(right_nums)
+	safe_count := 0
 
-	diff_sum := 0
+	for _, report := range reports {
 
-	for i := range left_nums {
-		diff_sum += abs(left_nums[i], right_nums[i])
+		if is_safe(report) {
+			safe_count += 1
+		}
 	}
 
-	return diff_sum
+	return safe_count
+}
+
+func is_safe(report []int) bool {
+	safe := true
+	curr := report[0]
+	increasing := report[1] > curr
+
+	for _, level := range report[1:] {
+
+		if abs(curr, level) > 3 {
+			safe = false
+			break
+		}
+		if increasing && level <= curr {
+			safe = false
+			break
+
+		} else if !increasing && level >= curr {
+			safe = false
+			break
+		}
+		curr = level
+	}
+	return safe
 }
 
 func Solve2(input_lines string) int {
-	// Process the input
-	left_nums, right_nums := parse_input(input_lines)
+	reports := parse_input(input_lines)
+	fmt.Println("Js9 test")
 
-	// Count numbers in right
-	right_count := make(map[int]int)
-	for _, num := range right_nums {
-		count, exists := right_count[num]
-		if exists {
-			right_count[num] = count + 1
+	safe_count := 0
+
+	for _, report := range reports {
+
+		if is_safe_with_dampener(report) {
+			safe_count += 1
+		}
+	}
+
+	return safe_count
+}
+
+func is_safe_with_dampener(report []int) bool {
+	safe := true
+	curr := report[0]
+	increasing := report[1] > curr
+	num_removed := 0
+
+	for _, level := range report[1:] {
+
+		if abs(curr, level) > 3 {
+			safe = false
+		}
+		if increasing && level <= curr {
+			safe = false
+
+		} else if !increasing && level >= curr {
+			safe = false
+		}
+
+		if !safe {
+			if num_removed < 1 {
+				safe = true
+				num_removed += 1
+			} else {
+				break
+			}
 		} else {
-			right_count[num] = 1
+			curr = level
 		}
+
 	}
 
-	// Calc similarity score
-	similarity_score := 0
-	for _, num := range left_nums {
-		count, exists := right_count[num]
-		if exists {
-			similarity_score += count * num
-		}
+	if !safe {
+		// Deal with case where you could remove either the first or second element
+		// What a horrible hack lol
+		return is_safe(report[1:]) || is_safe(append(report[:1], report[2:]...))
+	} else {
+		return true
 	}
-
-	return similarity_score
 }
 
 func abs(a int, b int) int {
@@ -57,17 +109,19 @@ func abs(a int, b int) int {
 		return b - a
 	}
 }
-func parse_input(input_lines string) ([]int, []int) {
-	left_nums := []int{}
-	right_nums := []int{}
+func parse_input(input_lines string) [][]int {
+	lines := strings.Split(input_lines, "\n")
 
-	for _, line := range strings.Split(input_lines, "\n") {
-		nums := strings.Fields(line)
-		left_num, _ := strconv.Atoi(nums[0])
-		left_nums = append(left_nums, left_num)
+	reports := make([][]int, len(lines))
 
-		right_num, _ := strconv.Atoi(nums[1])
-		right_nums = append(right_nums, right_num)
+	for i, line := range lines {
+		levels := strings.Fields(line)
+		report := make([]int, len(levels))
+		for j, level := range levels {
+			num, _ := strconv.Atoi(level)
+			report[j] = num
+		}
+		reports[i] = report
 	}
-	return left_nums, right_nums
+	return reports
 }
