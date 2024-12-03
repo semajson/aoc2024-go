@@ -1,21 +1,20 @@
 package day03
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 )
 
 func Solve1(input_lines string) int {
 	// Process the input
-	multiply_commands := parse_input(input_lines)
-	fmt.Println("Usage: go run main.go <day>", multiply_commands)
+	commands := parse_input(input_lines)
 
 	sum := 0
-
-	for _, multiply_command := range multiply_commands {
-		fmt.Println("Usage: go run main.go <day>", multiply_command[0], multiply_command[1])
-		sum += multiply_command[0] * multiply_command[1]
+	for _, command := range commands {
+		switch command.name {
+		case "mul":
+			sum += command.param1 * command.param2
+		}
 	}
 
 	return sum
@@ -23,29 +22,45 @@ func Solve1(input_lines string) int {
 
 func Solve2(input_lines string) int {
 	// Process the input
-	return 1
-}
+	commands := parse_input(input_lines)
 
-func abs(a int, b int) int {
-	if a > b {
-		return a - b
-	} else {
-		return b - a
+	sum := 0
+	mul_enabled := true
+	for _, command := range commands {
+		switch command.name {
+		case "mul":
+			if mul_enabled {
+				sum += command.param1 * command.param2
+			}
+		case "do":
+			mul_enabled = true
+		case "don't":
+			mul_enabled = false
+		}
 	}
+	return sum
 }
-func parse_input(input_lines string) [][]int {
-	multiply_commands := [][]int{}
 
-	re, _ := regexp.Compile("mul\\((\\d*),(\\d*)\\)")
+func parse_input(input_lines string) []command {
+	commands := []command{}
+
+	re, _ := regexp.Compile(`(mul|do|don't)\((\d+)?(,)?(\d+)?\)`)
 
 	matches := re.FindAllStringSubmatch(input_lines, -1)
 
 	for _, match := range matches {
-		left_num, _ := strconv.Atoi(match[1])
-		right_num, _ := strconv.Atoi(match[2])
-		multiply_command := []int{left_num, right_num}
+		command_name := match[1]
+		param1, _ := strconv.Atoi(match[2])
+		param2, _ := strconv.Atoi(match[4])
+		command := command{command_name, param1, param2}
 
-		multiply_commands = append(multiply_commands, multiply_command)
+		commands = append(commands, command)
 	}
-	return multiply_commands
+	return commands
+}
+
+type command struct {
+	name   string
+	param1 int
+	param2 int
 }
