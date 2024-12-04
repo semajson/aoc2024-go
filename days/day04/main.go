@@ -1,58 +1,32 @@
 package day04
 
 import (
-	"fmt"
 	"strings"
 )
 
 func Solve1(input_lines string) int {
-	// Process the input
 	board := parse_input(input_lines)
 	word_to_find := string("XMAS")
 	occurrences := 0
 
+	directions := [][]int{
+		{0, -1},  // N
+		{0, 1},   // S
+		{1, 0},   //E
+		{-1, 0},  //W
+		{1, 1},   // NE
+		{1, -1},  // SE
+		{-1, 1},  // SW
+		{-1, -1}, // NW
+	}
+
 	for y, row := range board {
 		for x := range row {
-			// North
-			if is_match(board, x, y, 0, -1, word_to_find) {
-				occurrences += 1
+			for _, dxy := range directions {
+				if is_match(board, x, y, dxy[0], dxy[1], word_to_find) {
+					occurrences += 1
+				}
 			}
-
-			// South
-			if is_match(board, x, y, 0, 1, word_to_find) {
-				occurrences += 1
-			}
-
-			// East
-			if is_match(board, x, y, 1, 0, word_to_find) {
-				occurrences += 1
-			}
-
-			// West
-			if is_match(board, x, y, -1, 0, word_to_find) {
-				occurrences += 1
-			}
-
-			// NE
-			if is_match(board, x, y, 1, -1, word_to_find) {
-				occurrences += 1
-			}
-
-			// SE
-			if is_match(board, x, y, 1, 1, word_to_find) {
-				occurrences += 1
-			}
-
-			// SW
-			if is_match(board, x, y, -1, 1, word_to_find) {
-				occurrences += 1
-			}
-
-			// NW
-			if is_match(board, x, y, -1, -1, word_to_find) {
-				occurrences += 1
-			}
-
 		}
 
 	}
@@ -71,7 +45,7 @@ func is_match(board []string, x_start int, y_start int, dx int, dy int, word_to_
 		return false
 	}
 
-	// Check values
+	// Check values are equal
 	x := x_start
 	y := y_start
 	match := true
@@ -87,61 +61,23 @@ func is_match(board []string, x_start int, y_start int, dx int, dy int, word_to_
 }
 
 func Solve2(input_lines string) int {
-	// Process the input
 	board := parse_input(input_lines)
 	occurrences := 0
-	// fmt.Printf("Have match ")
-	// println("test")
-	// return 2
+
+	directions := [][]int{
+		{1, 1},   // NE
+		{1, -1},  // SE
+		{-1, 1},  // SW
+		{-1, -1}, // NW
+	}
 
 	for y, row := range board {
 		for x := range row {
-			// // North
-			// if is_x_mas_match(board, x, y, 0, -1) {
-			// 	occurrences += 1
-			// 	continue
-			// }
 
-			// // South
-			// if is_x_mas_match(board, x, y, 0, 1) {
-			// 	occurrences += 1
-			// 	continue
-			// }
-
-			// // East
-			// if is_x_mas_match(board, x, y, 1, 0) {
-			// 	occurrences += 1
-			// 	continue
-			// }
-
-			// // West
-			// if is_x_mas_match(board, x, y, -1, 0) {
-			// 	occurrences += 1
-			// 	continue
-			// }
-
-			// NE
-			if is_x_mas_match(board, x, y, 1, -1) {
-				occurrences += 1
-				continue
-			}
-
-			// SE
-			if is_x_mas_match(board, x, y, 1, 1) {
-				occurrences += 1
-				continue
-			}
-
-			// SW
-			if is_x_mas_match(board, x, y, -1, 1) {
-				occurrences += 1
-				continue
-			}
-
-			// NW
-			if is_x_mas_match(board, x, y, -1, -1) {
-				occurrences += 1
-				continue
+			for _, dxy := range directions {
+				if is_x_mas(board, x, y, dxy[0], dxy[1]) {
+					occurrences += 1
+				}
 			}
 
 		}
@@ -151,7 +87,14 @@ func Solve2(input_lines string) int {
 	return occurrences
 }
 
-func is_x_mas_match(board []string, x_centre int, y_centre int, m_x int, m_y int) bool {
+// Checks if the pattern is an orientation of
+// M . M
+// . A .
+// S . S
+// Where the:
+// - (x_centre, y_centre) is the 'A'
+// - the orientation is defined by (m_x, my)
+func is_x_mas(board []string, x_centre int, y_centre int, m_x int, m_y int) bool {
 	// Check in range
 	y_max := len(board)
 	x_max := len(board[0])
@@ -159,20 +102,19 @@ func is_x_mas_match(board []string, x_centre int, y_centre int, m_x int, m_y int
 		return false
 	}
 
-	// Check values
+	// Check values match
 	if board[y_centre][x_centre] != 'A' {
 		return false
 	}
-	s := string("MMSS")
-	for i := range s {
-		if board[y_centre+m_y][x_centre+m_x] != s[i] {
+	cross_pattern := string("MMSS")
+	for i := range cross_pattern {
+		if board[y_centre+m_y][x_centre+m_x] != cross_pattern[i] {
 			return false
 		}
 		// Rotation 90 degrees clockwise
 		m_x, m_y = m_x*0+m_y*-1, m_x*1+m_y*0
 	}
 
-	fmt.Printf("Have match %d, %d\n", x_centre, y_centre)
 	// All pass
 	return true
 }
