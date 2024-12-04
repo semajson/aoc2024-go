@@ -73,15 +73,12 @@ func Solve2(input_lines string) int {
 
 	for y, row := range board {
 		for x := range row {
-
 			for _, dxy := range directions {
 				if is_x_mas(board, x, y, dxy[0], dxy[1]) {
 					occurrences += 1
 				}
 			}
-
 		}
-
 	}
 
 	return occurrences
