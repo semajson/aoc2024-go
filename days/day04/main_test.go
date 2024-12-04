@@ -33,7 +33,18 @@ SAXAMASAAA
 MAMMMXMMMM
 MXMXAXMASX`
 	result := Solve2(example)
-	expect := 31
+	expect := 9
+
+	if result != expect {
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+	}
+}
+func TestDayExample2P2(t *testing.T) {
+	example := `TMS
+MAS
+TST`
+	result := Solve2(example)
+	expect := 1
 
 	if result != expect {
 		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
