@@ -9,17 +9,7 @@ func Solve1(input_lines string) int {
 	rules, updates := parse_input(input_lines)
 
 	// Convert rules to more useful format
-	// Maybe should be a map to a set rather than a slice?
-	rules_map := make(map[int][]int)
-	for _, rule := range rules {
-		existing_rule, present := rules_map[rule[1]]
-
-		if present {
-			rules_map[rule[1]] = append(existing_rule, rule[0])
-		} else {
-			rules_map[rule[1]] = []int{rule[0]}
-		}
-	}
+	rules_map := build_rules_map(rules)
 
 	// Get valid updates
 	valid_updates := [][]int{}
@@ -30,14 +20,72 @@ func Solve1(input_lines string) int {
 
 	}
 
-	// Get middle values of updates
+	return get_middle_sum(valid_updates)
+}
+
+func Solve2(input_lines string) int {
+	rules, updates := parse_input(input_lines)
+
+	// Convert rules to more useful format
+	rules_map := build_rules_map(rules)
+
+	// Get invalid updates
+	invalid_updates := [][]int{}
+	for _, update := range updates {
+		if !update_valid(update, rules_map) {
+			invalid_updates = append(invalid_updates, update)
+		}
+
+	}
+
+	// Fix invalid updates
+	fixed_updates := [][]int{}
+	for _, invalid_update := range invalid_updates {
+		fixed_update := invalid_update
+
+		// Loop until the update is fixed
+		for !update_valid(fixed_update, rules_map) {
+			for i, x := range fixed_update {
+				rule, exists := rules_map[x]
+				if exists {
+					intersection, not_intersect := intersection(rule, fixed_update[i+1:])
+					if len(intersection) > 0 {
+						fixed_update = append(fixed_update[:i], intersection...)
+						fixed_update = append(fixed_update, x)
+						fixed_update = append(fixed_update, not_intersect...)
+
+						break
+					}
+				}
+			}
+		}
+		fixed_updates = append(fixed_updates, fixed_update)
+	}
+
+	return get_middle_sum(fixed_updates)
+}
+
+func get_middle_sum(valid_updates [][]int) int {
 	middle_sum := 0
 	for _, valid_update := range valid_updates {
 		middle_value := valid_update[len(valid_update)/2]
 		middle_sum += middle_value
 	}
-
 	return middle_sum
+}
+
+func build_rules_map(rules [][]int) map[int][]int {
+	rules_map := make(map[int][]int)
+	for _, rule := range rules {
+		existing_rule, present := rules_map[rule[1]]
+
+		if present {
+			rules_map[rule[1]] = append(existing_rule, rule[0])
+		} else {
+			rules_map[rule[1]] = []int{rule[0]}
+		}
+	}
+	return rules_map
 }
 
 func update_valid(update []int, rules_map map[int][]int) bool {
@@ -75,63 +123,6 @@ func intersection(a []int, b []int) ([]int, []int) {
 
 	}
 	return intersect, not_intersect
-}
-
-func Solve2(input_lines string) int {
-	rules, updates := parse_input(input_lines)
-
-	// Convert rules to more useful format
-	// Maybe should be a map to a set rather than a slice?
-	rules_map := make(map[int][]int)
-	for _, rule := range rules {
-		existing_rule, present := rules_map[rule[1]]
-
-		if present {
-			rules_map[rule[1]] = append(existing_rule, rule[0])
-		} else {
-			rules_map[rule[1]] = []int{rule[0]}
-		}
-	}
-
-	// Get invalid updates
-	invalid_updates := [][]int{}
-	for _, update := range updates {
-		if !update_valid(update, rules_map) {
-			invalid_updates = append(invalid_updates, update)
-		}
-
-	}
-
-	// Fix invalid updates
-	fixed_updates := [][]int{}
-	for _, invalid_update := range invalid_updates {
-		fixed_update := invalid_update
-
-		for !update_valid(fixed_update, rules_map) {
-			for i, x := range fixed_update {
-				rule, exists := rules_map[x]
-				if exists {
-					intersection, not_intersect := intersection(rule, fixed_update[i+1:])
-					if len(intersection) > 0 {
-						fixed_update = append(fixed_update[:i], intersection...)
-						fixed_update = append(fixed_update, x)
-						fixed_update = append(fixed_update, not_intersect...)
-
-						break
-					}
-				}
-			}
-		}
-		fixed_updates = append(fixed_updates, fixed_update)
-	}
-
-	// Get middle values of fixed updates
-	middle_sum := 0
-	for _, fixed_update := range fixed_updates {
-		middle_value := fixed_update[len(fixed_update)/2]
-		middle_sum += middle_value
-	}
-	return middle_sum
 }
 
 func parse_input(input_lines string) ([][]int, [][]int) {
