@@ -7,9 +7,7 @@ import (
 var DIRECTIONS = [][]int{{1, 0}, {0, 1}, {-1, 0}, {0, -1}}
 
 func Solve1(input_lines string) int {
-	// Process the input
 	board, guard := parse_input(input_lines)
-	println(board[0])
 
 	coords_visited := make(map[[2]int]struct{})
 	for guard_on_board(guard, board) {
@@ -21,12 +19,55 @@ func Solve1(input_lines string) int {
 
 		move_guard(&guard, board)
 	}
-	println(len(coords_visited))
 	return len(coords_visited)
 }
 
 func Solve2(input_lines string) int {
-	return 1
+	board, guard_initial := parse_input(input_lines)
+
+	num_repeated_patterns := 0
+
+	for y, row := range board {
+		for x := range row {
+			if guard_initial.x == x && guard_initial.y == y {
+				continue
+			}
+			if board[y][x] != '.' {
+				continue
+			}
+
+			// Change pattern to add block
+			// Maybe better way to avoid copying idk
+			new_board := make([]string, len(board))
+			copy(new_board, board)
+			new_row := []rune(new_board[y])
+			new_row[x] = '#'
+			new_board[y] = string(new_row)
+
+			// Check for repeats
+			guard := guard_initial
+			if does_repeat(guard, new_board) {
+				num_repeated_patterns += 1
+			}
+		}
+	}
+
+	return num_repeated_patterns
+}
+
+func does_repeat(guard player, board []string) bool {
+	guard_history := make(map[player]struct{})
+	for guard_on_board(guard, board) {
+		_, repeated := guard_history[guard]
+		if repeated {
+			return true
+		} else {
+			guard_history[guard] = struct{}{}
+		}
+
+		move_guard(&guard, board)
+	}
+	return false
 }
 
 type player struct {
