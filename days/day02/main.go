@@ -1,7 +1,6 @@
 package day02
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -48,7 +47,6 @@ func is_safe(report []int) bool {
 
 func Solve2(input_lines string) int {
 	reports := parse_input(input_lines)
-	fmt.Println("Js9 test")
 
 	safe_count := 0
 

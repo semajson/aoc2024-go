@@ -7,7 +7,6 @@ import (
 )
 
 func Solve1(input_lines string) int {
-	// Process the input
 	left_nums, right_nums := parse_input(input_lines)
 
 	// Calc difference when sorted
@@ -24,7 +23,6 @@ func Solve1(input_lines string) int {
 }
 
 func Solve2(input_lines string) int {
-	// Process the input
 	left_nums, right_nums := parse_input(input_lines)
 
 	// Count numbers in right
