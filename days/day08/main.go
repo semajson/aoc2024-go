@@ -7,7 +7,10 @@ import (
 func Solve1(input_lines string) int {
 	antennas, x_max, y_max := parse_input(input_lines)
 
-	// Calc difference when sorted
+	return get_unique_antinodes(antennas, x_max, y_max, get_antinodes_1)
+}
+
+func get_unique_antinodes(antennas map[rune][][2]int, x_max int, y_max int, calc_antinodes func(a [2]int, b [2]int, x_max int, y_max int) [][2]int) int {
 	uniqute_antinodes := make(map[[2]int]struct{})
 
 	for _, coords := range antennas {
@@ -16,7 +19,7 @@ func Solve1(input_lines string) int {
 				if i <= j {
 					continue
 				}
-				antinodes := get_antinodes_1(coords[i], coords[j], x_max, y_max)
+				antinodes := calc_antinodes(coords[i], coords[j], x_max, y_max)
 
 				for _, antinode := range antinodes {
 					if coord_on_map(antinode, x_max, y_max) {
@@ -53,30 +56,7 @@ func Solve2(input_lines string) int {
 
 	antennas, x_max, y_max := parse_input(input_lines)
 
-	// Calc difference when sorted
-	uniqute_antinodes := make(map[[2]int]struct{})
-
-	for _, coords := range antennas {
-		for i := range coords {
-			for j := range coords {
-				if i <= j {
-					continue
-				}
-				antinodes := get_antinodes_2(coords[i], coords[j], x_max, y_max)
-
-				for _, antinode := range antinodes {
-					if coord_on_map(antinode, x_max, y_max) {
-						_, exists := uniqute_antinodes[antinode]
-						if !exists {
-							uniqute_antinodes[antinode] = struct{}{}
-						}
-					}
-				}
-
-			}
-		}
-	}
-	return len(uniqute_antinodes)
+	return get_unique_antinodes(antennas, x_max, y_max, get_antinodes_2)
 }
 
 func get_antinodes_2(a [2]int, b [2]int, x_max int, y_max int) [][2]int {
@@ -103,13 +83,6 @@ func get_antinodes_2(a [2]int, b [2]int, x_max int, y_max int) [][2]int {
 	return antinodes
 }
 
-func abs(a int, b int) int {
-	if a > b {
-		return a - b
-	} else {
-		return b - a
-	}
-}
 func parse_input(input_lines string) (map[rune][][2]int, int, int) {
 	antennas := make(map[rune][][2]int)
 
