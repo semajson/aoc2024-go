@@ -85,37 +85,37 @@ func Solve2(input_lines string) int {
 
 	debug_print(blocks)
 
-	curr_block := -1
-	curr_len := 0
+	curr_file_block := -1
+	curr_file_len := 0
 	moved_blocks := make(map[int]struct{})
 	for i := len(blocks) - 1; i >= 0; i-- {
 		block := blocks[i]
-		if block == curr_block {
-			curr_len += 1
+		if block == curr_file_block {
+			curr_file_len += 1
 		} else {
-			_, already_moved := moved_blocks[curr_block]
-			if curr_block != -1 && !already_moved {
-				// Found whole block
+			_, already_moved := moved_blocks[curr_file_block]
+			if curr_file_block != -1 && !already_moved {
+				// Found whole file
 
-				// Try to move
-				free_index := First_free_space(blocks, curr_len, i)
+				// Try to move file
+				free_index := First_free_space(blocks, curr_file_len, i)
 				if free_index > 0 {
-					// Move whole block left
-					for j := free_index; j < free_index+curr_len; j++ {
-						blocks[j] = curr_block
+					// Copy file to the found free space
+					for j := free_index; j < free_index+curr_file_len; j++ {
+						blocks[j] = curr_file_block
 					}
 
-					// Set current block to empty space
-					for j := i + 1; j < i+1+curr_len; j++ {
+					// Free the current space
+					for j := i + 1; j < i+1+curr_file_len; j++ {
 						blocks[j] = -1
 					}
 					debug_print(blocks)
 				}
 			}
 
-			moved_blocks[curr_block] = struct{}{}
-			curr_block = block
-			curr_len = 1
+			moved_blocks[curr_file_block] = struct{}{}
+			curr_file_block = block
+			curr_file_len = 1
 		}
 	}
 	debug_print(blocks)
