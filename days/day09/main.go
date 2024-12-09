@@ -134,6 +134,7 @@ func First_free_space(blocks []int, space_required int, curr_index int) int {
 		if blocks[i] == -1 {
 			curr_space += 1
 			if curr_space == space_required {
+				// Found enough space!
 				return i + 1 - space_required
 			}
 		} else {
