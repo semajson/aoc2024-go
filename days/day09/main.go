@@ -65,7 +65,7 @@ func calc_checksum(blocks []int) int {
 }
 
 func debug_print(blocks []int) {
-	if true {
+	if false {
 		return
 	}
 	fmt.Printf("\n")
@@ -74,7 +74,7 @@ func debug_print(blocks []int) {
 			fmt.Printf(".")
 
 		} else {
-			fmt.Printf("%d", block)
+			fmt.Printf("%d,", block)
 
 		}
 	}
@@ -85,18 +85,16 @@ func Solve2(input_lines string) int {
 	filesystem := parse_input(input_lines)
 	blocks := calc_blocks(filesystem)
 
-	debug_print(blocks)
-
 	curr_file_block := FREE
 	curr_file_len := 0
-	moved_blocks := make(map[int]struct{})
+
 	for i := len(blocks) - 1; i >= 0; i-- {
 		block := blocks[i]
 		if block == curr_file_block {
 			curr_file_len += 1
 		} else {
-			_, already_moved := moved_blocks[curr_file_block]
-			if curr_file_block != FREE && !already_moved {
+			if curr_file_block != FREE {
+
 				// Found whole file
 
 				// Try to move file
@@ -111,16 +109,14 @@ func Solve2(input_lines string) int {
 					for j := i + 1; j < i+1+curr_file_len; j++ {
 						blocks[j] = FREE
 					}
-					debug_print(blocks)
+					// debug_print(blocks)
 				}
 			}
 
-			moved_blocks[curr_file_block] = struct{}{}
-			curr_file_block = block
+			curr_file_block = blocks[i]
 			curr_file_len = 1
 		}
 	}
-	debug_print(blocks)
 
 	return calc_checksum(blocks)
 }
