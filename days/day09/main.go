@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+const FREE = -1
+
 func Solve1(input_lines string) int {
 	filesystem := parse_input(input_lines)
 
@@ -13,15 +15,15 @@ func Solve1(input_lines string) int {
 	last_possible_file_block := len(blocks) - 1
 	for i := range blocks {
 		// Find the first free block
-		num := blocks[i]
-		if num == -1 {
+		block := blocks[i]
+		if block == FREE {
 			// Now find last file block
 			for j := last_possible_file_block; j > i; j-- {
-				end_num := blocks[j]
-				if end_num != -1 {
+				end_block := blocks[j]
+				if end_block != FREE {
 					// Swap them around
-					blocks[i] = end_num
-					blocks[j] = -1
+					blocks[i] = end_block
+					blocks[j] = FREE
 					last_possible_file_block = j - 1
 
 					break
@@ -45,7 +47,7 @@ func calc_blocks(filesystem []int) []int {
 		} else {
 			// Free space
 			for i := 0; i < num; i++ {
-				blocks = append(blocks, -1)
+				blocks = append(blocks, FREE)
 			}
 		}
 	}
@@ -54,9 +56,9 @@ func calc_blocks(filesystem []int) []int {
 
 func calc_checksum(blocks []int) int {
 	checksum := 0
-	for i, num := range blocks {
-		if num != -1 {
-			checksum += i * num
+	for i, block := range blocks {
+		if block != FREE {
+			checksum += i * block
 		}
 	}
 	return checksum
@@ -68,7 +70,7 @@ func debug_print(blocks []int) {
 	}
 	fmt.Printf("\n")
 	for _, block := range blocks {
-		if block == -1 {
+		if block == FREE {
 			fmt.Printf(".")
 
 		} else {
@@ -85,7 +87,7 @@ func Solve2(input_lines string) int {
 
 	debug_print(blocks)
 
-	curr_file_block := -1
+	curr_file_block := FREE
 	curr_file_len := 0
 	moved_blocks := make(map[int]struct{})
 	for i := len(blocks) - 1; i >= 0; i-- {
@@ -94,7 +96,7 @@ func Solve2(input_lines string) int {
 			curr_file_len += 1
 		} else {
 			_, already_moved := moved_blocks[curr_file_block]
-			if curr_file_block != -1 && !already_moved {
+			if curr_file_block != FREE && !already_moved {
 				// Found whole file
 
 				// Try to move file
@@ -107,7 +109,7 @@ func Solve2(input_lines string) int {
 
 					// Free the current space
 					for j := i + 1; j < i+1+curr_file_len; j++ {
-						blocks[j] = -1
+						blocks[j] = FREE
 					}
 					debug_print(blocks)
 				}
@@ -131,7 +133,7 @@ func First_free_space(blocks []int, space_required int, curr_index int) int {
 	curr_space := 0
 
 	for i := 0; i <= curr_index; i++ {
-		if blocks[i] == -1 {
+		if blocks[i] == FREE {
 			curr_space += 1
 			if curr_space == space_required {
 				// Found enough space!
