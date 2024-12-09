@@ -1,0 +1,159 @@
+package day09
+
+import (
+	"fmt"
+	"log"
+)
+
+func Solve1(input_lines string) int {
+	filesystem := parse_input(input_lines)
+
+	blocks := calc_blocks(filesystem)
+
+	last_possible_file_block := len(blocks) - 1
+	for i := range blocks {
+		// Find the first free block
+		num := blocks[i]
+		if num == -1 {
+			// Now find last file block
+			for j := last_possible_file_block; j > i; j-- {
+				end_num := blocks[j]
+				if end_num != -1 {
+					// Swap them around
+					blocks[i] = end_num
+					blocks[j] = -1
+					last_possible_file_block = j - 1
+
+					break
+				}
+			}
+		}
+	}
+
+	return calc_checksum(blocks)
+}
+
+func calc_blocks(filesystem []int) []int {
+	blocks := []int{}
+	for i, num := range filesystem {
+		if i%2 == 0 {
+			// File
+			file_num := i / 2
+			for i := 0; i < num; i++ {
+				blocks = append(blocks, file_num)
+			}
+		} else {
+			// Free space
+			for i := 0; i < num; i++ {
+				blocks = append(blocks, -1)
+			}
+		}
+	}
+	return blocks
+}
+
+func calc_checksum(blocks []int) int {
+	checksum := 0
+	for i, num := range blocks {
+		if num != -1 {
+			checksum += i * num
+		}
+	}
+	return checksum
+}
+
+func debug_print(blocks []int) {
+	if true {
+		return
+	}
+	fmt.Printf("\n")
+	for _, block := range blocks {
+		if block == -1 {
+			fmt.Printf(".")
+
+		} else {
+			fmt.Printf("%d", block)
+
+		}
+	}
+	fmt.Printf("\n")
+}
+
+func Solve2(input_lines string) int {
+	filesystem := parse_input(input_lines)
+	blocks := calc_blocks(filesystem)
+
+	debug_print(blocks)
+
+	curr_block := -1
+	curr_len := 0
+	moved_blocks := make(map[int]struct{})
+	for i := len(blocks) - 1; i >= 0; i-- {
+		block := blocks[i]
+		if block == curr_block {
+			curr_len += 1
+		} else {
+			_, already_moved := moved_blocks[curr_block]
+			if curr_block != -1 && !already_moved {
+				// Found whole block
+
+				// Try to move
+				free_index := First_free_space(blocks, curr_len, i)
+				if free_index > 0 {
+					// Move whole block left
+					for j := free_index; j < free_index+curr_len; j++ {
+						blocks[j] = curr_block
+					}
+
+					// Set current block to empty space
+					for j := i + 1; j < i+1+curr_len; j++ {
+						blocks[j] = -1
+					}
+					debug_print(blocks)
+				}
+			}
+
+			moved_blocks[curr_block] = struct{}{}
+			curr_block = block
+			curr_len = 1
+		}
+	}
+	debug_print(blocks)
+
+	return calc_checksum(blocks)
+}
+
+func First_free_space(blocks []int, space_required int, curr_index int) int {
+	if space_required <= 0 {
+		return -1
+	}
+
+	curr_space := 0
+
+	for i := 0; i <= curr_index; i++ {
+		if blocks[i] == -1 {
+			curr_space += 1
+			if curr_space == space_required {
+				return i + 1 - space_required
+			}
+		} else {
+			curr_space = 0
+		}
+	}
+	return -1
+}
+
+func parse_input(input_lines string) []int {
+	filesystem := []int{}
+
+	for _, char := range input_lines {
+		num := int(char) - int('0')
+
+		if num > 10 {
+			err := fmt.Errorf("the num found: %d is greater than 10", num)
+			log.Fatal(err)
+		}
+		filesystem = append(filesystem, num)
+	}
+	return filesystem
+}
