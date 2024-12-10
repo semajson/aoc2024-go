@@ -28,37 +28,38 @@ func main() {
 	// Solve
 	var result_1 int
 	var result_2 int
+	input := get_input(day)
 	switch day {
 	case "1":
-		result_1 = day01.Solve1(get_input("01"))
-		result_2 = day01.Solve2(get_input("01"))
+		result_1 = day01.Solve1(input)
+		result_2 = day01.Solve2(input)
 	case "2":
-		result_1 = day02.Solve1(get_input("02"))
-		result_2 = day02.Solve2(get_input("02"))
+		result_1 = day02.Solve1(input)
+		result_2 = day02.Solve2(input)
 	case "3":
-		result_1 = day03.Solve1(get_input("03"))
-		result_2 = day03.Solve2(get_input("03"))
+		result_1 = day03.Solve1(input)
+		result_2 = day03.Solve2(input)
 	case "4":
-		result_1 = day04.Solve1(get_input("04"))
-		result_2 = day04.Solve2(get_input("04"))
+		result_1 = day04.Solve1(input)
+		result_2 = day04.Solve2(input)
 	case "5":
-		result_1 = day05.Solve1(get_input("05"))
-		result_2 = day05.Solve2(get_input("05"))
+		result_1 = day05.Solve1(input)
+		result_2 = day05.Solve2(input)
 	case "6":
-		result_1 = day06.Solve1(get_input("06"))
-		result_2 = day06.Solve2(get_input("06"))
+		result_1 = day06.Solve1(input)
+		result_2 = day06.Solve2(input)
 	case "7":
-		result_1 = day07.Solve1(get_input("07"))
-		result_2 = day07.Solve2(get_input("07"))
+		result_1 = day07.Solve1(input)
+		result_2 = day07.Solve2(input)
 	case "8":
-		result_1 = day08.Solve1(get_input("08"))
-		result_2 = day08.Solve2(get_input("08"))
+		result_1 = day08.Solve1(input)
+		result_2 = day08.Solve2(input)
 	case "9":
-		result_1 = day09.Solve1(get_input("09"))
-		result_2 = day09.Solve2(get_input("09"))
+		result_1 = day09.Solve1(input)
+		result_2 = day09.Solve2(input)
 	case "10":
-		result_1 = day10.Solve1(get_input("10"))
-		result_2 = day10.Solve2(get_input("10"))
+		result_1 = day10.Solve1(input)
+		result_2 = day10.Solve2(input)
 	default:
 		fmt.Printf("Solution for day %s is not implemented.\n", day)
 		os.Exit(1)
@@ -69,6 +70,11 @@ func main() {
 }
 
 func get_input(num string) string {
+	// Zero pad
+	if len(num) == 1 {
+		num = "0" + num
+	}
+
 	path := "days/day" + num + "/input.txt"
 	input, err := os.ReadFile(path)
 	if err != nil {
