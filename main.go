@@ -11,6 +11,7 @@ import (
 	"aoc2024-go/days/day08"
 	"aoc2024-go/days/day09"
 	"aoc2024-go/days/day10"
+	"aoc2024-go/days/day11"
 	"fmt"
 	"log"
 	"os"
@@ -60,6 +61,9 @@ func main() {
 	case "10":
 		result_1 = day10.Solve1(input)
 		result_2 = day10.Solve2(input)
+	case "11":
+		result_1 = day11.Solve1(input)
+		result_2 = day11.Solve2(input)
 	default:
 		fmt.Printf("Solution for day %s is not implemented.\n", day)
 		os.Exit(1)
