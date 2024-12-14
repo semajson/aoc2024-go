@@ -54,7 +54,37 @@ BBCD
 BBCC
 EEEC`
 	result := Solve2(example)
-	expect := 31
+	expect := 80
+
+	if result != expect {
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+	}
+}
+
+func TestDayExample2P2(t *testing.T) {
+	example := `EEEEE
+EXXXX
+EEEEE
+EXXXX
+EEEEE
+`
+	result := Solve2(example)
+	expect := 236
+
+	if result != expect {
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+	}
+}
+
+func TestDayExample3P2(t *testing.T) {
+	example := `AAAAAA
+AAABBA
+AAABBA
+ABBAAA
+ABBAAA
+AAAAAA`
+	result := Solve2(example)
+	expect := 368
 
 	if result != expect {
 		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
