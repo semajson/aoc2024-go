@@ -2,6 +2,7 @@ package day14
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 )
@@ -76,15 +77,78 @@ func Solve2(input_lines string) int {
 	y_max := 103
 
 	// Move robots
+	x_var_mean := float64(0)
+	x_var_var_sum := float64(0)
+	x_var_prev := 0
+
+	y_var_mean := float64(0)
+	y_var_var_sum := float64(0)
+	y_var_prev := 0
+	n := 0
 	for t := 1; t < 100000; t++ {
 		for i, robot := range robots {
 			robot.move(1, x_max, y_max)
 			robots[i] = robot
 		}
-		println("Time passed: ", t)
-		draw_board(robots)
+		x_var, y_var := get_variance(robots)
+
+		// Calc running variance of the variance!
+		// Uses Welford's Algorithm
+		n += 1
+		x_var_diff := x_var - x_var_prev
+		x_var_mean += float64(x_var_diff) / float64(n)
+		x_var_var_sum += float64(x_var_diff) * (float64(x_var) - x_var_mean)
+
+		y_var_diff := y_var - y_var_prev
+		y_var_mean += float64(y_var_diff) / float64(n)
+		y_var_var_sum += float64(y_var_diff) * (float64(y_var) - y_var_mean)
+
+		// Check if it is a big outlier in both x and y
+		// by calculating Z score
+		x_var_var := x_var_var_sum / float64(n)
+		x_var_sd := math.Sqrt(float64(x_var_var))
+		x_var_z_score := (float64(x_var) - x_var_mean) / x_var_sd
+
+		y_var_var := y_var_var_sum / float64(n)
+		y_var_sd := math.Sqrt(float64(y_var_var))
+		y_var_z_score := (float64(y_var) - y_var_mean) / y_var_sd
+
+		// println("Time passed: ", t)
+		// println("X var Z score is ", x_var_z)
+		// println("Y var Z score is ", y_var_z)
+
+		if math.Abs(x_var_z_score) > 3 && math.Abs(y_var_z_score) > 3 {
+			return t
+		}
+
+		// draw_board(robots)
+		x_var_prev, y_var_prev = x_var, y_var
 	}
-	return 1
+	return 0
+}
+
+func get_variance(robots []robot) (int, int) {
+	// Calc mean
+	x_sum := 0
+	y_sum := 0
+	for _, robot := range robots {
+		x_sum += robot.x
+		y_sum += robot.y
+	}
+	x_mean := x_sum / len(robots)
+	y_mean := y_sum / len(robots)
+
+	// Now calc (population) variance
+	x_variance := 0
+	y_variance := 0
+	for _, robot := range robots {
+		x_variance += (robot.x - x_mean) * (robot.x - x_mean)
+		y_variance += (robot.y - y_mean) * (robot.y - y_mean)
+	}
+	x_variance /= len(robots)
+	y_variance /= len(robots)
+
+	return x_variance, y_variance
 }
 
 func draw_board(robots []robot) {
