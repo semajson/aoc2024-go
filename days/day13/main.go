@@ -11,13 +11,13 @@ func Solve1(input_lines string) int {
 
 	output := 0
 	for _, machine := range machines {
-		output += get_min_tokens(machine)
+		output += get_min_tokens_fast(machine)
 	}
 
 	return output
 }
 
-func get_min_tokens(machine machine) int {
+func get_min_token_slow(machine machine) int {
 	// Could use dikstra algo to find the minimum
 
 	seen := make(map[node]struct{})
@@ -48,21 +48,57 @@ func get_min_tokens(machine machine) int {
 
 		// B branch
 		b_branch := node{curr_node.a_count, curr_node.b_count + 1}
-		heap.Push(queue, b_branch)
+		_, visited_b := seen[b_branch]
+		if !visited_b {
+			heap.Push(queue, b_branch)
+		}
 
 		// A branch
 		a_branch := node{curr_node.a_count + 1, curr_node.b_count}
-		heap.Push(queue, a_branch)
+		_, visited_a := seen[a_branch]
+		if !visited_a {
+			heap.Push(queue, a_branch)
+		}
 
 	}
 	return 0
 }
 
-func Solve2(input_lines string) int {
-	test := parse_input(input_lines)
-	println(test)
+func get_min_tokens_fast(machine machine) int {
+	b_top := (machine.a_dx*machine.prize_y - machine.a_dy*machine.prize_x)
+	b_bottom := (machine.a_dx*machine.b_dy - machine.a_dy*machine.b_dx)
+	if b_top%b_bottom != 0 {
+		return 0
+	}
+	b_count := b_top / b_bottom
+	if b_count < 0 {
+		return 0
+	}
 
-	return 1
+	a_top := (machine.b_dx*machine.prize_y - machine.b_dy*machine.prize_x)
+	a_bottom := (machine.a_dy*machine.b_dx - machine.a_dx*machine.b_dy)
+	if a_top%a_bottom != 0 {
+		return 0
+	}
+	a_count := a_top / a_bottom
+	if b_count < 0 {
+		return 0
+	}
+
+	return a_count*3 + b_count
+}
+
+func Solve2(input_lines string) int {
+	machines := parse_input(input_lines)
+
+	output := 0
+	for _, machine := range machines {
+		machine.prize_x += 10000000000000
+		machine.prize_y += 10000000000000
+		output += get_min_tokens_fast(machine)
+	}
+
+	return output
 }
 
 type node struct {
@@ -121,7 +157,6 @@ func parse_input(input_lines string) []machine {
 			panic("error passing input")
 		}
 		machines = append(machines, machine{a_dx, a_dy, b_dx, b_dy, prize_x, prize_y})
-		// matches = append(matches, machine{a_dx: a_dx, a_dy: a_dy, b_dx: b_dx, b_dy: b_dy, prize_x: prize_x, prize_y: prize_y})
 	}
 
 	return machines
