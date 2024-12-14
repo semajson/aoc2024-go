@@ -67,39 +67,39 @@ func find_region(pos coord, seen map[coord]struct{}, pos_map map[coord]string, v
 	region := []coord{}
 	current := []coord{pos}
 	for len(current) > 0 {
-		new_current := []coord{}
+		// Pop one element from current
+		node := current[len(current)-1]
+		current = current[:len(current)-1]
 
-		for _, node := range current {
-			_, visited := seen[node]
+		_, visited := seen[node]
+		if visited {
+			continue
+		}
 
-			if visited {
+		seen[node] = struct{}{}
+		region = append(region, node)
+
+		if !slices.Contains(region, node) {
+			panic("Unhitable code 2")
+		}
+
+		// Flood fill to get surround region values
+		for _, neighbour := range node.get_neighbours() {
+			neighbour_value, exists := pos_map[neighbour]
+
+			if !exists || neighbour_value != value {
 				continue
 			}
-			seen[node] = struct{}{}
-			region = append(region, node)
 
-			if !slices.Contains(region, node) {
-				panic("Unhitable code 2")
+			_, visited_neighbour := seen[neighbour]
+
+			if visited_neighbour {
+				continue
 			}
 
-			for _, neighbour := range node.get_neighbours() {
-				neighbour_value, exists := pos_map[neighbour]
-
-				if !exists || neighbour_value != value {
-					continue
-				}
-
-				_, visited_neighbour := seen[neighbour]
-
-				if visited_neighbour {
-					continue
-				}
-
-				new_current = append(new_current, neighbour)
-
-			}
+			current = append(current, neighbour)
 		}
-		current = new_current
+
 	}
 	return region
 }
