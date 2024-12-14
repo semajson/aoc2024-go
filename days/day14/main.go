@@ -1,6 +1,7 @@
 package day14
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 )
@@ -71,9 +72,50 @@ func Solve1(input_lines string) int {
 func Solve2(input_lines string) int {
 	robots := parse_input(input_lines)
 
-	println(robots)
+	x_max := 101
+	y_max := 103
 
+	// Move robots
+	for t := 1; t < 100000; t++ {
+		for i, robot := range robots {
+			robot.move(1, x_max, y_max)
+			robots[i] = robot
+		}
+		println("Time passed: ", t)
+		draw_board(robots)
+	}
 	return 1
+}
+
+func draw_board(robots []robot) {
+	x_max := 101
+	y_max := 103
+
+	var grid [103][101]int
+
+	// Initialize the array with '.'
+	for x := 0; x < x_max; x++ {
+		for y := 0; y < y_max; y++ {
+			grid[y][x] = 0
+		}
+	}
+
+	for _, robot := range robots {
+		// val := grid[robot.y][robot.x]
+		grid[robot.y][robot.x] += 1
+	}
+	for _, row := range grid {
+		for _, num := range row {
+
+			if num == 0 {
+				fmt.Printf(" ")
+			} else {
+				fmt.Printf("%d", num)
+			}
+		}
+		fmt.Printf("\n")
+	}
+	println(" ")
 }
 
 type robot struct {
