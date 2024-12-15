@@ -57,101 +57,6 @@ func calc_score_sum(board map[coord]string) int {
 	}
 	return score_sum
 }
-
-func Solve2(input_lines string) int {
-	p1_board, moves, p1_robot := parse_input(input_lines)
-	board, robot := transform_board_for_p2(p1_board, p1_robot)
-
-	// Simulate
-	// print_board(board, robot)
-	for _, move := range moves {
-		// print_move(move)
-		boxes, robot_moves := find_what_moves_p2(robot, move, board)
-
-		if robot_moves {
-			move_boxes(boxes, board, move)
-			robot = coord{robot.x + move.dx, robot.y + move.dy}
-		}
-		// print_board(board, robot)
-	}
-
-	return calc_score_sum(board)
-}
-
-func find_what_moves_p2(robot coord, move move, board map[coord]string) ([]coord, bool) {
-	curr_line := []coord{coord{robot.x, robot.y}}
-
-	// Find all items to move in a given direction
-	boxes := []coord{}
-	for {
-		// Get next line
-		for i := range curr_line {
-			curr_line[i] = coord{curr_line[i].x + move.dx, curr_line[i].y + move.dy}
-		}
-
-		wall := false
-		new_curr_line := []coord{}
-		for _, curr := range curr_line {
-			val, exists := board[curr]
-			if !exists {
-				// Found a "space"
-
-				// Check if it is actually the right side of a box
-				left := coord{curr.x - 1, curr.y}
-				left_val, _ := board[left]
-				if left_val == "O" {
-					// Is a box
-					new_curr_line = append(new_curr_line, curr)
-
-					if (!slices.Contains(curr_line, left)) && (move.dx == 0) {
-						// Found a new box!
-						boxes = append(boxes, left)
-
-						// Extend curr to left one
-						new_curr_line = append(new_curr_line, left)
-					}
-				} else {
-					// It is a real space!
-					// Can now ignore this curr, as there is space for this
-				}
-			} else if val == "#" {
-				// Found wall
-				wall = true
-				break
-			} else if val == "O" {
-				// Found box
-				boxes = append(boxes, coord{curr.x, curr.y})
-
-				// Check if we need to extend curr to right
-				right := coord{curr.x + 1, curr.y}
-				new_curr_line = append(new_curr_line, curr)
-				if move.dx == 0 && !slices.Contains(curr_line, right) {
-					// Extend curr to right
-					new_curr_line = append(new_curr_line, right)
-				}
-			} else {
-				panic("Unhitable 4")
-			}
-
-		}
-
-		// Check exist conditions
-
-		if wall {
-			// Hit the wall, nothing moves
-			robot_moves := false
-			return []coord{}, robot_moves
-		}
-
-		curr_line = new_curr_line
-		if len(curr_line) == 0 {
-			// There is space to move the robot + all boxes it is attached to
-			robot_moves := true
-			return boxes, robot_moves
-		}
-	}
-}
-
 func move_boxes(boxes []coord, board map[coord]string, move move) {
 	// Move All found boxes by 1 in the direction
 	for i := len(boxes) - 1; i >= 0; i-- {
@@ -176,19 +81,24 @@ func move_boxes(boxes []coord, board map[coord]string, move move) {
 	}
 }
 
-func print_move(move move) {
-	if move.dx == -1 {
-		println("Move is: <")
+func Solve2(input_lines string) int {
+	p1_board, moves, p1_robot := parse_input(input_lines)
+	board, robot := transform_board_for_p2(p1_board, p1_robot)
+
+	// Simulate
+	// print_board(board, robot)
+	for _, move := range moves {
+		// print_move(move)
+		boxes, robot_moves := find_what_moves_p2(robot, move, board)
+
+		if robot_moves {
+			move_boxes(boxes, board, move)
+			robot = coord{robot.x + move.dx, robot.y + move.dy}
+		}
+		// print_board(board, robot)
 	}
-	if move.dx == 1 {
-		println("Move is: >")
-	}
-	if move.dy == -1 {
-		println("Move is: ^")
-	}
-	if move.dy == 1 {
-		println("Move is: v")
-	}
+
+	return calc_score_sum(board)
 }
 
 func transform_board_for_p2(board map[coord]string, robot coord) (map[coord]string, coord) {
@@ -206,6 +116,75 @@ func transform_board_for_p2(board map[coord]string, robot coord) (map[coord]stri
 	new_robot := coord{robot.x * 2, robot.y}
 
 	return new_board, new_robot
+}
+
+func find_what_moves_p2(robot coord, move move, board map[coord]string) ([]coord, bool) {
+	curr_line := []coord{coord{robot.x, robot.y}}
+
+	// Find all items to move in a given direction
+	boxes := []coord{}
+	for {
+		// Get next line
+		for i := range curr_line {
+			curr_line[i] = coord{curr_line[i].x + move.dx, curr_line[i].y + move.dy}
+		}
+
+		new_curr_line := []coord{}
+		for _, curr := range curr_line {
+			val, exists := board[curr]
+			if !exists {
+				// Found a "space"
+
+				// Check if it is actually the right side of a box
+				left := coord{curr.x - 1, curr.y}
+				left_val, _ := board[left]
+				if left_val == "O" {
+					// Is a box
+					// Keep tracking this
+					new_curr_line = append(new_curr_line, curr)
+
+					if (!slices.Contains(curr_line, left)) && (move.dx == 0) {
+						// Found a new box!
+						boxes = append(boxes, left)
+
+						// Extend curr to left one
+						new_curr_line = append(new_curr_line, left)
+					}
+				} else {
+					// Is a real space
+					// Can now stop checking coord
+				}
+			} else if val == "#" {
+				// Found wall
+
+				// When you hit the wall, nothing moves
+				robot_moves := false
+				return []coord{}, robot_moves
+			} else if val == "O" {
+				// Found box
+				boxes = append(boxes, coord{curr.x, curr.y})
+
+				// Check if we need to extend curr to right
+				right := coord{curr.x + 1, curr.y}
+				new_curr_line = append(new_curr_line, curr)
+				if move.dx == 0 && !slices.Contains(curr_line, right) {
+					// Extend curr to right
+					new_curr_line = append(new_curr_line, right)
+				}
+			} else {
+				panic("Unhitable 4")
+			}
+
+		}
+
+		// Check exist condition
+		curr_line = new_curr_line
+		if len(curr_line) == 0 {
+			// There is space to move the robot + all boxes it is attached to
+			robot_moves := true
+			return boxes, robot_moves
+		}
+	}
 }
 
 func print_board(board map[coord]string, robot coord) {
@@ -234,6 +213,20 @@ func print_board(board map[coord]string, robot coord) {
 	}
 	fmt.Printf("\n")
 
+}
+func print_move(move move) {
+	if move.dx == -1 {
+		println("Move is: <")
+	}
+	if move.dx == 1 {
+		println("Move is: >")
+	}
+	if move.dy == -1 {
+		println("Move is: ^")
+	}
+	if move.dy == 1 {
+		println("Move is: v")
+	}
 }
 
 type coord struct {
