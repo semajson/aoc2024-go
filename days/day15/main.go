@@ -23,29 +23,29 @@ func Solve1(input_lines string) int {
 	return calc_score_sum(board)
 }
 
+const ROBOT_MOVES = true
+const ROBOT_DOES_NOT_MOVE = false
+
 func find_what_moves_p1(robot coord, move move, board map[coord]string) ([]coord, bool) {
-	curr := coord{robot.x, robot.y}
+	point_to_check := coord{robot.x, robot.y}
 
 	// Find all items to move in a given direction
 	boxes := []coord{}
-	robot_moves := false
 	for {
-		curr = coord{curr.x + move.dx, curr.y + move.dy}
+		point_to_check = coord{point_to_check.x + move.dx, point_to_check.y + move.dy}
 
-		val, exists := board[curr]
+		val, exists := board[point_to_check]
 		if !exists {
 			// Found a space
-			robot_moves = true
-			break
+			return boxes, ROBOT_MOVES
 		} else if val == "#" {
 			// Found wall
-			break
+			return []coord{}, ROBOT_DOES_NOT_MOVE
 		} else {
 			// Found box
-			boxes = append(boxes, coord{curr.x, curr.y})
+			boxes = append(boxes, coord{point_to_check.x, point_to_check.y})
 		}
 	}
-	return boxes, robot_moves
 }
 
 func calc_score_sum(board map[coord]string) int {
@@ -119,57 +119,55 @@ func transform_board_for_p2(board map[coord]string, robot coord) (map[coord]stri
 }
 
 func find_what_moves_p2(robot coord, move move, board map[coord]string) ([]coord, bool) {
-	curr_line := []coord{coord{robot.x, robot.y}}
+	points_to_check := []coord{coord{robot.x, robot.y}}
 
 	// Find all items to move in a given direction
 	boxes := []coord{}
 	for {
 		// Get next line
-		for i := range curr_line {
-			curr_line[i] = coord{curr_line[i].x + move.dx, curr_line[i].y + move.dy}
+		for i := range points_to_check {
+			points_to_check[i] = coord{points_to_check[i].x + move.dx, points_to_check[i].y + move.dy}
 		}
 
-		new_curr_line := []coord{}
-		for _, curr := range curr_line {
-			val, exists := board[curr]
+		new_points_to_check := []coord{}
+		for _, point_to_check := range points_to_check {
+			val, exists := board[point_to_check]
 			if !exists {
 				// Found a "space"
 
 				// Check if it is actually the right side of a box
-				left := coord{curr.x - 1, curr.y}
+				left := coord{point_to_check.x - 1, point_to_check.y}
 				left_val, _ := board[left]
 				if left_val == "O" {
 					// Is a box
 					// Keep tracking this
-					new_curr_line = append(new_curr_line, curr)
+					new_points_to_check = append(new_points_to_check, point_to_check)
 
-					if (!slices.Contains(curr_line, left)) && (move.dx == 0) {
+					if (!slices.Contains(points_to_check, left)) && (move.dx == 0) {
 						// Found a new box!
 						boxes = append(boxes, left)
 
-						// Extend curr to left one
-						new_curr_line = append(new_curr_line, left)
+						// Need to check left point too now
+						new_points_to_check = append(new_points_to_check, left)
 					}
 				} else {
 					// Is a real space
-					// Can now stop checking coord
+					// Can now stop checking this point
 				}
 			} else if val == "#" {
 				// Found wall
 
 				// When you hit the wall, nothing moves
-				robot_moves := false
-				return []coord{}, robot_moves
+				return []coord{}, ROBOT_DOES_NOT_MOVE
 			} else if val == "O" {
 				// Found box
-				boxes = append(boxes, coord{curr.x, curr.y})
+				boxes = append(boxes, coord{point_to_check.x, point_to_check.y})
+				new_points_to_check = append(new_points_to_check, point_to_check)
 
-				// Check if we need to extend curr to right
-				right := coord{curr.x + 1, curr.y}
-				new_curr_line = append(new_curr_line, curr)
-				if move.dx == 0 && !slices.Contains(curr_line, right) {
-					// Extend curr to right
-					new_curr_line = append(new_curr_line, right)
+				// Check if we need to check the point to the right
+				right := coord{point_to_check.x + 1, point_to_check.y}
+				if move.dx == 0 && !slices.Contains(points_to_check, right) {
+					new_points_to_check = append(new_points_to_check, right)
 				}
 			} else {
 				panic("Unhitable 4")
@@ -178,11 +176,10 @@ func find_what_moves_p2(robot coord, move move, board map[coord]string) ([]coord
 		}
 
 		// Check exist condition
-		curr_line = new_curr_line
-		if len(curr_line) == 0 {
+		points_to_check = new_points_to_check
+		if len(points_to_check) == 0 {
 			// There is space to move the robot + all boxes it is attached to
-			robot_moves := true
-			return boxes, robot_moves
+			return boxes, ROBOT_MOVES
 		}
 	}
 }
