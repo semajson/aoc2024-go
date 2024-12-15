@@ -2,6 +2,7 @@ package day15
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -77,17 +78,162 @@ func Solve1(input_lines string) int {
 }
 
 func Solve2(input_lines string) int {
-	board, moves, robot := parse_input(input_lines)
+	p1_board, moves, p1_robot := parse_input(input_lines)
 
 	// Calc difference when sorted
-	println(len(board), len(moves), robot.x)
+	// println(board, moves, robot)
+	// print_board(board, robot)
+	// println(len(board), len(moves), robot.x)
 
-	return 1
+	board, robot := transform_board(p1_board, p1_robot)
+	print_board(board, robot)
+
+	// Simulate
+	for _, move := range moves {
+		if move.dx == -1 {
+			println("Move is: <")
+		}
+		if move.dx == 1 {
+			println("Move is: >")
+		}
+		if move.dy == -1 {
+			println("Move is: ^")
+		}
+		if move.dy == 1 {
+			println("Move is: v")
+		}
+
+		// Curr is now a line!
+		curr_line := []coord{coord{robot.x, robot.y}}
+
+		// Find all items to move in a given direction
+		boxes := []coord{}
+		space := false
+		for {
+			// Get next line
+			for i := range curr_line {
+				curr_line[i] = coord{curr_line[i].x + move.dx, curr_line[i].y + move.dy}
+			}
+			// space_count := 0
+			wall := false
+			new_curr := []coord{}
+			for _, curr := range curr_line {
+				val, exists := board[curr]
+				if !exists {
+					// Found a "space"
+
+					// Check if it is actually the right side of a box
+					left := coord{curr.x - 1, curr.y}
+					left_val, _ := board[left]
+					if left_val == "O" {
+						new_curr = append(new_curr, curr)
+						if (!slices.Contains(curr_line, left)) && (move.dx == 0) {
+							// Found another box!
+							boxes = append(boxes, left)
+
+							// Extend curr to left
+							new_curr = append(new_curr, left)
+						}
+					} else {
+						// It is a real space!
+						// Can now ignore this curr, as it has space for it
+					}
+
+				} else if val == "#" {
+					// Found wall
+					wall = true
+					break
+				} else if val == "O" {
+					// Found box
+					boxes = append(boxes, coord{curr.x, curr.y})
+					right := coord{curr.x + 1, curr.y}
+					new_curr = append(new_curr, curr)
+					if move.dx == 0 && !slices.Contains(curr_line, right) {
+						// Extend curr to right
+						new_curr = append(new_curr, right)
+					}
+				} else {
+					panic("Unhitable 4")
+				}
+
+			}
+
+			if wall {
+				break
+			}
+
+			if (move.dy == 0) && len(curr_line) > 1 {
+				panic("more unhitable code")
+			}
+
+			curr_line = new_curr
+			if len(curr_line) == 0 {
+				space = true
+				break
+			}
+		}
+
+		if space {
+			// Move all found boxes by 1 in the direction
+			for i := len(boxes) - 1; i >= 0; i-- {
+				// Remove box
+				box_pos := boxes[i]
+				box_val, exists := board[box_pos]
+				if box_val != "O" {
+					panic("unhittable code 3")
+				}
+				if !exists {
+					panic("unhittable code 1")
+				}
+				delete(board, box_pos)
+
+				// Re-add box
+				box_pos = coord{box_pos.x + move.dx, box_pos.y + move.dy}
+				_, occupied := board[box_pos]
+				if occupied {
+					panic("unhittable code 2")
+				}
+				board[box_pos] = box_val
+			}
+
+			// Move robot
+			robot = coord{robot.x + move.dx, robot.y + move.dy}
+		}
+		print_board(board, robot)
+	}
+
+	score_sum := 0
+	for pos, val := range board {
+		if val == "O" {
+			score_sum += pos.x + 100*pos.y
+		}
+	}
+
+	return score_sum
+}
+
+func transform_board(board map[coord]string, robot coord) (map[coord]string, coord) {
+	new_board := make(map[coord]string)
+
+	for pos, val := range board {
+		switch val {
+		case "#":
+			new_board[coord{pos.x * 2, pos.y}] = val
+			new_board[coord{pos.x*2 + 1, pos.y}] = val
+		case "O":
+			new_board[coord{pos.x * 2, pos.y}] = val
+		}
+	}
+	new_robot := coord{robot.x * 2, robot.y}
+
+	return new_board, new_robot
 }
 
 func print_board(board map[coord]string, robot coord) {
 	x_max := 0
 	y_max := 0
+
+	return
 
 	for pos, _ := range board {
 		x_max = max(x_max, pos.x)
