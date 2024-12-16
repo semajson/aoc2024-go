@@ -11,62 +11,7 @@ func Solve1(input_lines string) int {
 	// Dijkstra solve
 	start := node{pos: start_pos, dir: 1, score: 0}
 
-	return Dijkstra(board, start, end_pos)
-}
-
-func Dijkstra(board map[coord]struct{}, start node, end_pos coord) int {
-	queue := &NodeHeap{}
-	heap.Init(queue)
-	heap.Push(queue, start)
-	seen := make(map[node_key]struct{})
-
-	for queue.Len() > 0 {
-		curr_node := heap.Pop(queue).(node)
-		lookup_key := node_key{curr_node.pos, curr_node.dir}
-
-		_, visited := seen[lookup_key]
-		if visited {
-			continue
-		}
-		seen[lookup_key] = struct{}{}
-
-		// Exit check
-		if curr_node.pos == end_pos {
-			return curr_node.score
-		}
-
-		// Straight branch
-		dx := DIRECTIONS[curr_node.dir][0]
-		dy := DIRECTIONS[curr_node.dir][1]
-		new_pos := coord{curr_node.pos.x + dx, curr_node.pos.y + dy}
-
-		_, exists := board[new_pos]
-		if exists {
-			straight_branch := node{
-				pos:    new_pos,
-				dir:    curr_node.dir,
-				score:  curr_node.score + 1,
-				source: &curr_node}
-			heap.Push(queue, straight_branch)
-		}
-
-		// Clockwise branch
-		clockwise_branch := node{
-			pos:    curr_node.pos,
-			dir:    (curr_node.dir + 1) % len(DIRECTIONS),
-			score:  curr_node.score + 1000,
-			source: &curr_node}
-		heap.Push(queue, clockwise_branch)
-
-		// Anti clockwise branch
-		anti_clockwise_branch := node{
-			pos:    curr_node.pos,
-			dir:    (curr_node.dir - 1 + len(DIRECTIONS)) % len(DIRECTIONS),
-			score:  curr_node.score + 1000,
-			source: &curr_node}
-		heap.Push(queue, anti_clockwise_branch)
-	}
-	panic("Didn't solve maze")
+	return Dijkstra_best_paths(board, start, end_pos)[0].score
 }
 
 func Solve2(input_lines string) int {
