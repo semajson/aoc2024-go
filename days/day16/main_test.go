@@ -52,6 +52,30 @@ func TestDayExample2P1(t *testing.T) {
 }
 
 func TestDayExampleP2(t *testing.T) {
+	example := `###############
+#.......#....E#
+#.#.###.#.###.#
+#.....#.#...#.#
+#.###.#####.#.#
+#.#.#.......#.#
+#.#.#####.###.#
+#...........#.#
+###.#.#####.#.#
+#...#.....#.#.#
+#.#.#.###.#.#.#
+#.....#...#.#.#
+#.###.#.#.#.#.#
+#S..#.....#...#
+###############`
+	result := Solve2(example)
+	expect := 45
+
+	if result != expect {
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+	}
+}
+
+func TestDayExample2P2(t *testing.T) {
 	example := `#################
 #...#...#...#..E#
 #.#.#.#.#.#.#.#.#
@@ -70,7 +94,7 @@ func TestDayExampleP2(t *testing.T) {
 #S#.............#
 #################`
 	result := Solve2(example)
-	expect := 31
+	expect := 64
 
 	if result != expect {
 		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)

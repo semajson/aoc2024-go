@@ -42,34 +42,114 @@ func Dijkstra(board map[coord]struct{}, start node, end_pos coord) int {
 
 		_, exists := board[new_pos]
 		if exists {
-			straight_branch := node{pos: new_pos,
-				dir:   curr_node.dir,
-				score: curr_node.score + 1}
+			straight_branch := node{
+				pos:    new_pos,
+				dir:    curr_node.dir,
+				score:  curr_node.score + 1,
+				source: &curr_node}
 			heap.Push(queue, straight_branch)
 		}
 
 		// Clockwise branch
-		clockwise_branch := node{pos: curr_node.pos,
-			dir:   (curr_node.dir + 1) % len(DIRECTIONS),
-			score: curr_node.score + 1000}
+		clockwise_branch := node{
+			pos:    curr_node.pos,
+			dir:    (curr_node.dir + 1) % len(DIRECTIONS),
+			score:  curr_node.score + 1000,
+			source: &curr_node}
 		heap.Push(queue, clockwise_branch)
 
 		// Anti clockwise branch
-		anti_clockwise_branch := node{pos: curr_node.pos,
-			dir:   (curr_node.dir - 1 + len(DIRECTIONS)) % len(DIRECTIONS),
-			score: curr_node.score + 1000}
+		anti_clockwise_branch := node{
+			pos:    curr_node.pos,
+			dir:    (curr_node.dir - 1 + len(DIRECTIONS)) % len(DIRECTIONS),
+			score:  curr_node.score + 1000,
+			source: &curr_node}
 		heap.Push(queue, anti_clockwise_branch)
 	}
 	panic("Didn't solve maze")
 }
 
 func Solve2(input_lines string) int {
-	board, start, end := parse_input(input_lines)
+	board, start_pos, end_pos := parse_input(input_lines)
 
-	// Calc difference when sorted
-	println(len(board), start.x, end.x)
+	start := node{pos: start_pos, dir: 1, score: 0, source: nil}
 
-	return 1
+	best_paths := Dijkstra_best_paths(board, start, end_pos)
+
+	nodes_on_a_best_path := make(map[coord]struct{})
+	for _, end_node := range best_paths {
+		curr_node := &end_node
+		for curr_node != nil {
+			nodes_on_a_best_path[(*curr_node).pos] = struct{}{}
+			curr_node = curr_node.source
+		}
+
+	}
+
+	return len(nodes_on_a_best_path)
+}
+
+func Dijkstra_best_paths(board map[coord]struct{}, start node, end_pos coord) []node {
+	queue := &NodeHeap{}
+	heap.Init(queue)
+	heap.Push(queue, start)
+	seen := make(map[node_key]int)
+
+	best_paths := []node{}
+
+	for queue.Len() > 0 {
+		curr_node := heap.Pop(queue).(node)
+		lookup_key := node_key{curr_node.pos, curr_node.dir}
+
+		prev_score, visited := seen[lookup_key]
+		if visited && curr_node.score > prev_score {
+			continue
+		}
+		seen[lookup_key] = curr_node.score
+
+		// Exit check
+		if curr_node.pos == end_pos {
+			if len(best_paths) == 0 || curr_node.score == best_paths[0].score {
+				// Found another best path
+				best_paths = append(best_paths, curr_node)
+			} else {
+				// Must have found all best paths
+				return best_paths
+			}
+		}
+
+		// Straight branch
+		dx := DIRECTIONS[curr_node.dir][0]
+		dy := DIRECTIONS[curr_node.dir][1]
+		new_pos := coord{curr_node.pos.x + dx, curr_node.pos.y + dy}
+
+		_, exists := board[new_pos]
+		if exists {
+			straight_branch := node{
+				pos:    new_pos,
+				dir:    curr_node.dir,
+				score:  curr_node.score + 1,
+				source: &curr_node}
+			heap.Push(queue, straight_branch)
+		}
+
+		// Clockwise branch
+		clockwise_branch := node{
+			pos:    curr_node.pos,
+			dir:    (curr_node.dir + 1) % len(DIRECTIONS),
+			score:  curr_node.score + 1000,
+			source: &curr_node}
+		heap.Push(queue, clockwise_branch)
+
+		// Anti clockwise branch
+		anti_clockwise_branch := node{
+			pos:    curr_node.pos,
+			dir:    (curr_node.dir - 1 + len(DIRECTIONS)) % len(DIRECTIONS),
+			score:  curr_node.score + 1000,
+			source: &curr_node}
+		heap.Push(queue, anti_clockwise_branch)
+	}
+	panic("Didn't solve maze")
 }
 
 type coord struct {
@@ -84,9 +164,10 @@ var DIRECTIONS = [][]int{
 	{-1, 0}} // W
 
 type node struct {
-	pos   coord
-	dir   int
-	score int
+	pos    coord
+	dir    int
+	score  int
+	source *node
 }
 
 type node_key struct {
