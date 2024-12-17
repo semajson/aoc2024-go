@@ -17,6 +17,7 @@ import (
 	"aoc2024-go/days/day14"
 	"aoc2024-go/days/day15"
 	"aoc2024-go/days/day16"
+	"aoc2024-go/days/day17"
 	"fmt"
 	"log"
 	"os"
@@ -34,6 +35,10 @@ func main() {
 	// Solve
 	var result_1 int
 	var result_2 int
+
+	var result_1_str string
+	var result_2_str string
+
 	input := get_input(day)
 	switch day {
 	case "1":
@@ -84,13 +89,20 @@ func main() {
 	case "16":
 		result_1 = day16.Solve1(input)
 		result_2 = day16.Solve2(input)
+	case "17":
+		result_1_str = day17.Solve1(input)
+		result_2_str = day17.Solve2(input)
 	default:
 		fmt.Printf("Solution for day %s is not implemented.\n", day)
 		os.Exit(1)
 	}
 
 	// Display sol
-	fmt.Printf("Solution for day %s: part1: %d, part2: %d\n", day, result_1, result_2)
+	if result_1_str == "" && result_2_str == "" {
+		fmt.Printf("Solution for day %s: part1: %d, part2: %d\n", day, result_1, result_2)
+	} else {
+		fmt.Printf("Solution for day %s: part1: %s, part2: %s\n", day, result_1_str, result_2_str)
+	}
 }
 
 func get_input(num string) string {
