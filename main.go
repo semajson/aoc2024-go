@@ -91,17 +91,23 @@ func main() {
 		result_2 = day16.Solve2(input)
 	case "17":
 		result_1_str = day17.Solve1(input)
-		result_2_str = day17.Solve2(input)
+		result_2 = day17.Solve2(input)
 	default:
 		fmt.Printf("Solution for day %s is not implemented.\n", day)
 		os.Exit(1)
 	}
 
-	// Display sol
-	if result_1_str == "" && result_2_str == "" {
-		fmt.Printf("Solution for day %s: part1: %d, part2: %d\n", day, result_1, result_2)
+	// Display solution
+	if result_1_str == "" {
+		fmt.Printf("Solution for day %s: part1: %d", day, result_1)
 	} else {
-		fmt.Printf("Solution for day %s: part1: %s, part2: %s\n", day, result_1_str, result_2_str)
+		fmt.Printf("Solution for day %s: part1: %s", day, result_1_str)
+	}
+
+	if result_1_str == "" {
+		fmt.Printf("Solution for day %s: part2: %d", day, result_2)
+	} else {
+		fmt.Printf("Solution for day %s: part2: %s", day, result_2_str)
 	}
 }
 

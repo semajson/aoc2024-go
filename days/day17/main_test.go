@@ -17,15 +17,15 @@ Program: 0,1,5,4,3,0`
 }
 
 func TestDayExampleP2(t *testing.T) {
-	example := `Register A: 729
+	example := `Register A: 2024
 Register B: 0
 Register C: 0
 
-Program: 0,1,5,4,3,0`
+Program: 0,3,5,4,3,0`
 	result := Solve2(example)
-	expect := "4,6,3,5,6,3,5,2,1,0"
+	expect := 117440
 
 	if result != expect {
-		t.Errorf("Failed! \nSolve(%q)\nEquals: %s; \nWanted: %s", example, result, expect)
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
 	}
 }

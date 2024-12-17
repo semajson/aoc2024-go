@@ -22,13 +22,39 @@ func Solve1(input_lines string) string {
 	return computer.get_output()
 }
 
-func Solve2(input_lines string) string {
-	register_a, register_b, register_c, program := parse_input(input_lines)
+func Solve2(input_lines string) int {
+	_, register_b, register_c, program := parse_input(input_lines)
 
-	// Calc difference when sorted
-	println(register_a, register_b, register_c, program[0])
+	// Calc initial program
+	output_str := []string{}
+	for _, num := range program {
+		num_str := strconv.Itoa(num)
+		output_str = append(output_str, num_str)
+	}
+	initial_program := strings.Join(output_str, ",")
 
-	return "test"
+	// Brute force register a guesses
+	register_a_guess := 0
+	for {
+		computer := Computer{
+			register_a: register_a_guess,
+			register_b: register_b,
+			register_c: register_c,
+			program:    program}
+
+		computer.run_program()
+
+		if initial_program == computer.get_output() {
+			break
+		}
+		register_a_guess += 1
+
+		if register_a_guess%10000000 == 0 {
+			println("Register a guess is: ", register_a_guess)
+		}
+	}
+
+	return register_a_guess
 }
 
 type Computer struct {
