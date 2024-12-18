@@ -51,7 +51,7 @@ Register C: 0
 
 Program: 2,4,1,1,7,5,4,7,1,4,0,3,5,5,3,0`
 	result := Solve2(example)
-	expect := 117440
+	expect := 202367025818154
 
 	if result != expect {
 		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)

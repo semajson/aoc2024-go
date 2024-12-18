@@ -2,6 +2,7 @@ package day17
 
 import (
 	"math"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -10,7 +11,6 @@ import (
 func Solve1(input_lines string) string {
 	register_a, register_b, register_c, program := parse_input(input_lines)
 
-	// Calc difference when sorted
 	computer := Computer{
 		register_a: register_a,
 		register_b: register_b,
@@ -25,103 +25,39 @@ func Solve1(input_lines string) string {
 func Solve2(input_lines string) int {
 	_, register_b, register_c, program := parse_input(input_lines)
 
-	// Crack it like a safe
-	// register_a := 23
-	// for power := 0; power < len(program); power++ {
-	// 	for j := 0; j < 8; j++ {
-	// 		register_a_guess := register_a + j*int(math.Pow(8, float64(power)))
-	// 		computer := Computer{
-	// 			register_a: register_a_guess,
-	// 			register_b: register_b,
-	// 			register_c: register_c,
-	// 			program:    program}
+	// BFS guessing one 3-bit number at a time
+	a_guesses := []int{0}
+	for i := len(program) - 1; i >= 0; i-- {
+		a_guesses_new := []int{}
+		for j := 0; j < 8; j++ {
+			for _, a_guess := range a_guesses {
+				new_a_guess := a_guess*8 + j
+				computer := Computer{
+					register_a: new_a_guess,
+					register_b: register_b,
+					register_c: register_c,
+					program:    program}
 
-	// 		computer.run_program()
+				computer.run_program()
+				output := computer.get_output_ints()
 
-	// 		output := computer.get_output_ints()
-
-	// 		if reflect.DeepEqual(output, program[:power+1]) {
-	// 			register_a = register_a_guess
-	// 			break
-	// 		}
-	// 	}
-	// }
-
-	// Calc initial program
-	output_str := []string{}
-	for _, num := range program {
-		num_str := strconv.Itoa(num)
-		output_str = append(output_str, num_str)
-	}
-	initial_program := strings.Join(output_str, ",")
-	// initial_program_len := len(initial_program)
-
-	register_a := 0
-	for power := len(program) - 1; power >= 0; power-- {
-		for j := 7; j >= 0; j-- {
-			register_a_guess := register_a + j*int(math.Pow(8, float64(power)))
-
-			if register_a_guess == 0 {
-				continue
-			}
-			println("register_a_guess is ", register_a_guess)
-			computer := Computer{
-				register_a: register_a_guess,
-				register_b: register_b,
-				register_c: register_c,
-				program:    program}
-
-			computer.run_program()
-
-			output := computer.get_output_ints()
-			output_str := computer.get_output()
-
-			println("Power: ", power, ", j is: ", j, ", output:", output_str)
-
-			if initial_program == output_str {
-				return register_a_guess
-			}
-
-			if power-1 >= 0 {
-				if output[power-1] == program[power-1] {
-					register_a = register_a_guess
+				if reflect.DeepEqual(program[i:], output) {
+					a_guesses_new = append(a_guesses_new, new_a_guess)
 				}
-
 			}
+		}
+		a_guesses = a_guesses_new
+	}
 
+	// Select minimum guess
+	min := -1
+	for _, guess := range a_guesses {
+		if min == -1 || guess < min {
+			min = guess
 		}
 	}
-	return 0
 
-	// register_a := 0
-	// for power := 0; power < len(program); power++ {
-	// 	for j := 1; j < 8; j++ {
-	// 		register_a_guess := register_a + j*int(math.Pow(8, float64(power)))
-	// 		println("register_a_guess is ", register_a_guess)
-	// 		computer := Computer{
-	// 			register_a: register_a_guess,
-	// 			register_b: register_b,
-	// 			register_c: register_c,
-	// 			program:    program}
-
-	// 		computer.run_program()
-
-	// 		output := computer.get_output_ints()
-	// 		output_str := computer.get_output()
-
-	// 		println("Power: ", power, ", j is: ", j, ", output:", output_str)
-
-	// 		if power > 0 && output[power-1] == program[power-1] {
-	// 			register_a = register_a_guess
-	// 		}
-
-	// 		if initial_program == output_str {
-	// 			return register_a
-	// 		}
-	// 	}
-	// }
-
-	return register_a
+	return min
 }
 
 type Computer struct {
