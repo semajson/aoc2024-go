@@ -99,15 +99,15 @@ func main() {
 
 	// Display solution
 	if result_1_str == "" {
-		fmt.Printf("Solution for day %s: part1: %d", day, result_1)
+		fmt.Printf("Solution for day %s: part1: %d\n", day, result_1)
 	} else {
-		fmt.Printf("Solution for day %s: part1: %s", day, result_1_str)
+		fmt.Printf("Solution for day %s: part1: %s\n", day, result_1_str)
 	}
 
-	if result_1_str == "" {
-		fmt.Printf("Solution for day %s: part2: %d", day, result_2)
+	if result_2_str == "" {
+		fmt.Printf("Solution for day %s: part2: %d\n", day, result_2)
 	} else {
-		fmt.Printf("Solution for day %s: part2: %s", day, result_2_str)
+		fmt.Printf("Solution for day %s: part2: %s\n", day, result_2_str)
 	}
 }
 

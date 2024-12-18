@@ -25,6 +25,28 @@ func Solve1(input_lines string) string {
 func Solve2(input_lines string) int {
 	_, register_b, register_c, program := parse_input(input_lines)
 
+	// Crack it like a safe
+	// register_a := 23
+	// for power := 0; power < len(program); power++ {
+	// 	for j := 0; j < 8; j++ {
+	// 		register_a_guess := register_a + j*int(math.Pow(8, float64(power)))
+	// 		computer := Computer{
+	// 			register_a: register_a_guess,
+	// 			register_b: register_b,
+	// 			register_c: register_c,
+	// 			program:    program}
+
+	// 		computer.run_program()
+
+	// 		output := computer.get_output_ints()
+
+	// 		if reflect.DeepEqual(output, program[:power+1]) {
+	// 			register_a = register_a_guess
+	// 			break
+	// 		}
+	// 	}
+	// }
+
 	// Calc initial program
 	output_str := []string{}
 	for _, num := range program {
@@ -32,29 +54,74 @@ func Solve2(input_lines string) int {
 		output_str = append(output_str, num_str)
 	}
 	initial_program := strings.Join(output_str, ",")
+	// initial_program_len := len(initial_program)
 
-	// Brute force register a guesses
-	register_a_guess := 0
-	for {
-		computer := Computer{
-			register_a: register_a_guess,
-			register_b: register_b,
-			register_c: register_c,
-			program:    program}
+	register_a := 0
+	for power := len(program) - 1; power >= 0; power-- {
+		for j := 7; j >= 0; j-- {
+			register_a_guess := register_a + j*int(math.Pow(8, float64(power)))
 
-		computer.run_program()
+			if register_a_guess == 0 {
+				continue
+			}
+			println("register_a_guess is ", register_a_guess)
+			computer := Computer{
+				register_a: register_a_guess,
+				register_b: register_b,
+				register_c: register_c,
+				program:    program}
 
-		if initial_program == computer.get_output() {
-			break
-		}
-		register_a_guess += 1
+			computer.run_program()
 
-		if register_a_guess%10000000 == 0 {
-			println("Register a guess is: ", register_a_guess)
+			output := computer.get_output_ints()
+			output_str := computer.get_output()
+
+			println("Power: ", power, ", j is: ", j, ", output:", output_str)
+
+			if initial_program == output_str {
+				return register_a_guess
+			}
+
+			if power-1 >= 0 {
+				if output[power-1] == program[power-1] {
+					register_a = register_a_guess
+				}
+
+			}
+
 		}
 	}
+	return 0
 
-	return register_a_guess
+	// register_a := 0
+	// for power := 0; power < len(program); power++ {
+	// 	for j := 1; j < 8; j++ {
+	// 		register_a_guess := register_a + j*int(math.Pow(8, float64(power)))
+	// 		println("register_a_guess is ", register_a_guess)
+	// 		computer := Computer{
+	// 			register_a: register_a_guess,
+	// 			register_b: register_b,
+	// 			register_c: register_c,
+	// 			program:    program}
+
+	// 		computer.run_program()
+
+	// 		output := computer.get_output_ints()
+	// 		output_str := computer.get_output()
+
+	// 		println("Power: ", power, ", j is: ", j, ", output:", output_str)
+
+	// 		if power > 0 && output[power-1] == program[power-1] {
+	// 			register_a = register_a_guess
+	// 		}
+
+	// 		if initial_program == output_str {
+	// 			return register_a
+	// 		}
+	// 	}
+	// }
+
+	return register_a
 }
 
 type Computer struct {
@@ -169,6 +236,10 @@ func (computer Computer) get_output() string {
 		output_str = append(output_str, num_str)
 	}
 	return strings.Join(output_str, ",")
+}
+
+func (computer Computer) get_output_ints() []int {
+	return computer.output
 }
 
 func (computer Computer) combo_operand(operand int) int {
