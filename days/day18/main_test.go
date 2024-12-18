@@ -63,9 +63,9 @@ func TestDayExampleP2(t *testing.T) {
 1,6
 2,0`
 	result := Solve2(example)
-	expect := 31
+	expect := "6,1"
 
 	if result != expect {
-		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %s; \nWanted: %s", example, result, expect)
 	}
 }

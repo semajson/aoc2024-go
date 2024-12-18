@@ -6,14 +6,15 @@ import (
 )
 
 func Solve1(input_lines string) int {
-	falling_times := parse_input(input_lines)
+	falling_times, _ := parse_input(input_lines)
 
 	// BFS
-	start := coord{0, 0}
+	return bfs(falling_times, coord{70, 70}, 1024)
+}
 
-	// end := coord{6, 6}
-	end := coord{70, 70}
-	seconds_to_consider := 1024
+func bfs(falling_times map[coord]int, end coord, seconds_to_consider int) int {
+	// BFS
+	start := coord{0, 0}
 
 	curr := []coord{start}
 	seen := make(map[coord]struct{})
@@ -54,17 +55,36 @@ func Solve1(input_lines string) int {
 		curr = next
 		path_length += 1
 	}
-
-	return 1
+	return -1
 }
 
-func Solve2(input_lines string) int {
-	falling_times := parse_input(input_lines)
+func Solve2(input_lines string) string {
+	falling_times, max_time := parse_input(input_lines)
 
-	// Calc difference when sorted
-	println(len(falling_times))
+	// Binary chop
+	end := coord{70, 70}
+	lower_time := 0
+	for lower_time <= max_time {
+		mid := (lower_time + max_time) / 2
 
-	return 1
+		x := bfs(falling_times, end, mid)
+		x_plus_1 := bfs(falling_times, end, mid+1)
+
+		if x == -1 {
+			max_time = mid - 1
+		} else if x_plus_1 != -1 {
+			lower_time = mid + 1
+		} else {
+			// Found match!
+			for pos, time := range falling_times {
+				if time == (mid + 1) {
+					return pos.to_str()
+				}
+			}
+		}
+	}
+
+	panic("Didn't find answer")
 }
 
 type coord struct {
@@ -79,15 +99,20 @@ func (pos coord) get_neighbours() []coord {
 		{pos.x, pos.y + 1},
 		{pos.x, pos.y - 1}}
 }
+func (pos coord) to_str() string {
+	return strconv.Itoa(pos.x) + "," + strconv.Itoa(pos.y)
+}
 
-func parse_input(input_lines string) map[coord]int {
+func parse_input(input_lines string) (map[coord]int, int) {
 	falling_times := make(map[coord]int)
 
-	for time, line_raw := range strings.Split(input_lines, "\n") {
+	lines := strings.Split(input_lines, "\n")
+
+	for time, line_raw := range lines {
 		line := strings.Split(line_raw, ",")
 		x, _ := strconv.Atoi(line[0])
 		y, _ := strconv.Atoi(line[1])
 		falling_times[coord{x, y}] = time + 1 // Add one to not zero index
 	}
-	return falling_times
+	return falling_times, len(lines)
 }
