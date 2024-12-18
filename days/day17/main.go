@@ -26,6 +26,8 @@ func Solve2(input_lines string) int {
 	_, register_b, register_c, program := parse_input(input_lines)
 
 	// BFS guessing one 3-bit number at a time
+	// Importantly, work backwards from last 3-bit number
+	// This works as the input program is a particular format
 	a_guesses := []int{0}
 	for i := len(program) - 1; i >= 0; i-- {
 		a_guesses_new := []int{}
