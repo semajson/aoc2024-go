@@ -33,7 +33,7 @@ bwurrg
 brgr
 bbrgwb`
 	result := Solve2(example)
-	expect := 31
+	expect := 16
 
 	if result != expect {
 		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)

@@ -7,82 +7,63 @@ import (
 func Solve1(input_lines string) int {
 	towels, designs := parse_input(input_lines)
 
-	// Calc difference when sorted
-	valid_designs := 0
+	// Calc num of possible designs
+	possible_designs := 0
 	lookup := make(map[string]int)
 	for _, design := range designs {
-		if dfs(design, towels, lookup) != -1 {
-			valid_designs += 1
+		if dfs_permutations(design, towels, lookup) > 0 {
+			possible_designs += 1
 		}
 	}
 
-	return valid_designs
+	return possible_designs
 }
 
-// Returns the min towel number to make the design
-func dfs(design string, towels []string, lookup map[string]int) int {
+// Returns the number of ways to make a design from a given
+// list of towels
+func dfs_permutations(design string, towels []string, lookup map[string]int) int {
 	lookup_val, exists := lookup[design]
 	if exists {
 		return lookup_val
 	}
 
 	if len(design) == 0 {
-		return 0
+		return 1
 	}
 
-	min_towel_options := []int{}
-
-	// Branch for each towel that matches start of pattern
+	// Branch for each towel that matches start of design
+	permutations := 0
 	for _, towel := range towels {
 		if strings.HasPrefix(design, towel) {
-			min_towels_path := dfs(design[len(towel):], towels, lookup)
-
-			if min_towels_path != -1 {
-				min_towel_options = append(min_towel_options, min_towels_path)
-			}
+			permutations += dfs_permutations(design[len(towel):], towels, lookup)
 		}
 	}
 
-	// Get the min towels needed to make this pattern
-	min_towels := -1
-	for _, min_towel_option := range min_towel_options {
-		if min_towels == -1 || min_towel_option < min_towels {
-			min_towels = min_towel_option
-		}
-	}
-
-	lookup[design] = min_towels
-	return min_towels
+	lookup[design] = permutations
+	return permutations
 }
 
 func Solve2(input_lines string) int {
 	towels, designs := parse_input(input_lines)
 
-	// Calc difference when sorted
-	println(len(towels), len(designs))
-
-	return 1
-}
-
-func abs(a int, b int) int {
-	if a > b {
-		return a - b
-	} else {
-		return b - a
+	total_permutations := 0
+	lookup := make(map[string]int)
+	for _, design := range designs {
+		total_permutations += dfs_permutations(design, towels, lookup)
 	}
+
+	return total_permutations
 }
+
 func parse_input(input_lines string) ([]string, []string) {
 
 	input := strings.Split(input_lines, "\n\n")
 
 	towels := []string{}
-	for _, line := range strings.Split(input[0], ", ") {
-		towels = append(towels, line)
-	}
+	towels = append(towels, strings.Split(input[0], ", ")...)
 
 	designs := []string{}
-	for _, line := range strings.Split(input[1], "\n") {
-		designs = append(designs, line)
-	}
+	designs = append(designs, strings.Split(input[1], "\n")...)
+
 	return towels, designs
 }
