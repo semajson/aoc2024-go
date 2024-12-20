@@ -6,54 +6,7 @@ import (
 )
 
 func Solve1(input_lines string) int {
-	board, start, end := parse_input(input_lines)
-
-	println(len(board), start.x, end.x)
-	distance_from_start := solve_no_cheat(board, start, end)
-	distance_to_end := solve_no_cheat(board, end, start)
-	end_distance, _ := distance_from_start[end]
-
-	// Cheats
-	cheat_count := 0
-	cheat_range := 2
-	cheats_within := 100
-	for cheat_start, moves := range distance_from_start {
-		for dx := -cheat_range; dx <= cheat_range; dx++ {
-			for dy := -cheat_range; dy <= cheat_range; dy++ {
-				cheat_start_to_cheat_end := AbsInt(dx) + AbsInt(dy)
-				cheat_end := coord{x: cheat_start.x + dx, y: cheat_start.y + dy}
-				if cheat_start_to_cheat_end <= cheat_range {
-					val, exists := board[cheat_end]
-
-					if exists && val == "." {
-						move_to_end, exists_2 := distance_to_end[cheat_end]
-
-						if !exists_2 {
-							panic("Error")
-						}
-
-						distance_with_cheat := moves + cheat_start_to_cheat_end + move_to_end
-						if (end_distance - distance_with_cheat) >= cheats_within {
-							cheat_count += 1
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return cheat_count
-
-	// total_count := 0
-	// for _, moves := range cheat_moves {
-
-	// 	if (best_no_cheat - moves) >= 20 {
-	// 		total_count += 1
-	// 	}
-	// }
-
-	// return total_count
-
+	return Solve(input_lines, 100, 2)
 }
 
 func AbsInt(x int) int {
@@ -340,11 +293,49 @@ func print_board(board map[coord]string, current coord) {
 }
 
 func Solve2(input_lines string) int {
+	return Solve(input_lines, 100, 20)
+}
+
+func Solve(input_lines string, save_threshold int, cheat_range int) int {
 	board, start, end := parse_input(input_lines)
 
 	println(len(board), start.x, end.x)
+	distance_from_start := solve_no_cheat(board, start, end)
+	distance_to_end := solve_no_cheat(board, end, start)
+	end_distance, _ := distance_from_start[end]
 
-	return 1
+	// Cheats
+	cheat_count := 0
+
+	for cheat_start, moves := range distance_from_start {
+		if cheat_start == end {
+			continue
+		}
+		for dx := -cheat_range; dx <= cheat_range; dx++ {
+			for dy := -cheat_range; dy <= cheat_range; dy++ {
+				cheat_start_to_cheat_end := AbsInt(dx) + AbsInt(dy)
+				cheat_end := coord{x: cheat_start.x + dx, y: cheat_start.y + dy}
+				if cheat_start_to_cheat_end <= cheat_range {
+					val, exists := board[cheat_end]
+
+					if exists && val == "." {
+						cheat_end_to_end, exists_2 := distance_to_end[cheat_end]
+
+						if !exists_2 {
+							panic("Error")
+						}
+
+						distance_with_cheat := moves + cheat_start_to_cheat_end + cheat_end_to_end
+						if (end_distance - distance_with_cheat) >= save_threshold {
+							cheat_count += 1
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return cheat_count
 }
 
 type node_lookup struct {
