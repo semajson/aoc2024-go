@@ -9,22 +9,95 @@ func Solve1(input_lines string) int {
 	board, start, end := parse_input(input_lines)
 
 	println(len(board), start.x, end.x)
-	best, cheat_moves := bfs_get_route_2(board, start, end)
+	distance_from_start := solve_no_cheat(board, start, end)
+	distance_to_end := solve_no_cheat(board, end, start)
+	end_distance, _ := distance_from_start[end]
 
-	total_count := 0
-	for _, moves := range cheat_moves {
+	// Cheats
+	cheat_count := 0
+	cheat_range := 2
+	cheats_within := 100
+	for cheat_start, moves := range distance_from_start {
+		for dx := -cheat_range; dx <= cheat_range; dx++ {
+			for dy := -cheat_range; dy <= cheat_range; dy++ {
+				cheat_start_to_cheat_end := AbsInt(dx) + AbsInt(dy)
+				cheat_end := coord{x: cheat_start.x + dx, y: cheat_start.y + dy}
+				if cheat_start_to_cheat_end <= cheat_range {
+					val, exists := board[cheat_end]
 
-		if (best - moves) >= 100 {
-			total_count += 1
+					if exists && val == "." {
+						move_to_end, exists_2 := distance_to_end[cheat_end]
+
+						if !exists_2 {
+							panic("Error")
+						}
+
+						distance_with_cheat := moves + cheat_start_to_cheat_end + move_to_end
+						if (end_distance - distance_with_cheat) >= cheats_within {
+							cheat_count += 1
+						}
+					}
+				}
+			}
 		}
 	}
 
-	return total_count
+	return cheat_count
+
+	// total_count := 0
+	// for _, moves := range cheat_moves {
+
+	// 	if (best_no_cheat - moves) >= 20 {
+	// 		total_count += 1
+	// 	}
+	// }
+
+	// return total_count
 
 }
-func bfs_get_route_2(board map[coord]string, start coord, end coord) (int, map[[2]coord]int) {
-	no_cheat_shortest_path := bfs(board, start, end)
 
+func AbsInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func solve_no_cheat(board map[coord]string, start coord, end coord) map[coord]int {
+	current := []coord{start}
+	seen := make(map[coord]int)
+
+	depth := 0
+	for len(current) > 0 {
+		new_current := []coord{}
+		for _, current_node := range current {
+			_, visited := seen[current_node]
+			if visited {
+				continue
+			}
+			seen[current_node] = depth
+
+			// Exit
+			if current_node == end {
+				return seen
+			}
+
+			// Branch
+			for _, neighbour := range current_node.get_neighbours() {
+				val, exists := board[neighbour]
+
+				if exists && val == "." {
+					new_current = append(new_current, neighbour)
+				}
+			}
+		}
+		depth += 1
+		current = new_current
+	}
+	panic("Didn't find answer")
+}
+
+func bfs_get_route_2(board map[coord]string, start coord, end coord, best_no_cheat int) map[[2]coord]int {
 	cheat_shortest_paths := make(map[[2]coord]int)
 
 	// Get max
@@ -46,7 +119,7 @@ func bfs_get_route_2(board map[coord]string, start coord, end coord) (int, map[[
 
 				shortest_path_with_cheat := bfs(board, start, end)
 
-				if shortest_path_with_cheat < no_cheat_shortest_path {
+				if shortest_path_with_cheat < best_no_cheat {
 					key := [2]coord{cheat_start, cheat_start}
 					cheat_shortest_paths[key] = shortest_path_with_cheat
 				}
@@ -78,7 +151,7 @@ func bfs_get_route_2(board map[coord]string, start coord, end coord) (int, map[[
 		}
 	}
 
-	return no_cheat_shortest_path, cheat_shortest_paths
+	return cheat_shortest_paths
 }
 
 func bfs(board map[coord]string, start coord, end coord) int {
@@ -115,14 +188,13 @@ func bfs(board map[coord]string, start coord, end coord) int {
 	return depth
 }
 
-func bfs_get_route(board map[coord]string, start coord, end coord) (int, map[[2]coord]int) {
+func bfs_get_route(board map[coord]string, start coord, end coord, _ int) map[[2]coord]int {
 	current := []node{node{start, 0, 0, 0, coord{-1, -1}, coord{-1, -1}}}
 
-	seen := make(map[node]struct{})
+	seen := make(map[node_lookup]struct{})
 	no_cheat_shortest_path := make(map[coord]int)
 
 	cheat_quickest_path := make(map[[2]coord]int)
-	best := -1
 
 	max_cheats := 1
 	max_cheat_seconds := 2
@@ -131,12 +203,21 @@ func bfs_get_route(board map[coord]string, start coord, end coord) (int, map[[2]
 		current_node := current[0]
 		current = current[1:]
 
+		if len(seen)%1000000 == 0 {
+			// println("len(seen): ", len(seen), ". Len(current): ", len(current), ". len(cheat_quickest_path):",len(cheat_quickest_path))
+		}
+
 		// Pruning
-		_, visited := seen[current_node]
+		seen_lookup := node_lookup{
+			pos:                     current_node.pos,
+			moves:                   current_node.moves,
+			cheats_used:             current_node.cheats_used,
+			cheat_seconds_remaining: current_node.cheat_seconds_remaining}
+		_, visited := seen[seen_lookup]
 		if visited {
 			continue
 		}
-		seen[current_node] = struct{}{}
+		seen[seen_lookup] = struct{}{}
 
 		moves, visited_2 := no_cheat_shortest_path[current_node.pos]
 		if visited_2 && current_node.moves >= moves {
@@ -156,9 +237,9 @@ func bfs_get_route(board map[coord]string, start coord, end coord) (int, map[[2]
 
 		// Exit condition
 		if current_node.pos == end {
-			println("at exit")
+			// println("at exit")
 			if current_node.cheats_used == 0 {
-				best = current_node.moves
+				// best = current_node.moves
 				// Lets exist
 				break
 			} else if current_node.cheats_used == 1 {
@@ -228,7 +309,7 @@ func bfs_get_route(board map[coord]string, start coord, end coord) (int, map[[2]
 
 	}
 
-	return best, cheat_quickest_path
+	return cheat_quickest_path
 }
 
 func print_board(board map[coord]string, current coord) {
@@ -264,6 +345,13 @@ func Solve2(input_lines string) int {
 	println(len(board), start.x, end.x)
 
 	return 1
+}
+
+type node_lookup struct {
+	pos                     coord
+	cheats_used             int
+	cheat_seconds_remaining int
+	moves                   int
 }
 
 type node struct {
