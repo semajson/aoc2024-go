@@ -10,7 +10,9 @@ func Solve1(input_lines string) int {
 	println(len(codes))
 
 	complexity_sum := 0
+	// lookup := make(map[])
 	for _, code := range codes {
+		code := strings.Join(code, "")
 		shortest_combo := robot_1_shortest(code, 1)
 		num := numeric(code)
 		complexity_sum += len(shortest_combo) * num
@@ -19,9 +21,25 @@ func Solve1(input_lines string) int {
 	return complexity_sum
 }
 
-func numeric(code []string) int {
+func Solve2(input_lines string) int {
+	codes := parse_input(input_lines)
+	println(len(codes))
+
+	complexity_sum := 0
+	for _, code := range codes {
+		code := strings.Join(code, "")
+		shortest_combo := robot_1_shortest(code, 24)
+		num := numeric(code)
+		complexity_sum += len(shortest_combo) * num
+	}
+
+	return complexity_sum
+}
+
+func numeric(code string) int {
 	nums := []string{}
 	for _, char := range code {
+		char := string(char)
 		if char != "A" {
 			nums = append(nums, char)
 		}
@@ -43,7 +61,7 @@ func numeric(code []string) int {
 // 	}
 // }
 
-func robot_1_shortest(code []string, depth int) []string {
+func robot_1_shortest(code string, depth int) string {
 	board := robot_1_mapping
 
 	valid_map := make(map[coord]struct{})
@@ -51,28 +69,28 @@ func robot_1_shortest(code []string, depth int) []string {
 		valid_map[pos] = struct{}{}
 	}
 
-	shortest_path := []string{}
+	shortest_path := ""
 	for i := 0; i < len(code); i++ {
 
 		start := "A"
 		if i != 0 {
-			start = code[i-1]
+			start = string(code[i-1])
 		}
 
-		end := code[i]
+		end := string(code[i])
 		start_coord := robot_1_mapping[start]
 		end_coord := robot_1_mapping[end]
 
 		dir_combos := get_dir_combos(start_coord, end_coord, valid_map)
 
-		robot_2_codes := [][]string{}
+		robot_2_codes := []string{}
 		for _, dir_combo := range dir_combos {
-			robot_2_code := append(dir_combo, "A")
+			robot_2_code := dir_combo + "A"
 			robot_2_codes = append(robot_2_codes, robot_2_code)
 		}
 
 		// Recursive call
-		potential_paths := [][]string{}
+		potential_paths := []string{}
 		for _, robot_2_code := range robot_2_codes {
 			potential_path := robot_2_shortest(robot_2_code, depth)
 			potential_paths = append(potential_paths, potential_path)
@@ -80,18 +98,18 @@ func robot_1_shortest(code []string, depth int) []string {
 		// potential_paths := robot_2_codes
 
 		// Pick the shortest one
-		robot_2_shortest := []string{}
+		robot_2_shortest := ""
 		for _, potential_path := range potential_paths {
 			if (len(robot_2_shortest) == 0) || (len(potential_path) < len(robot_2_shortest)) {
 				robot_2_shortest = potential_path
 			}
 		}
-		shortest_path = append(shortest_path, robot_2_shortest...)
+		shortest_path = shortest_path + robot_2_shortest
 	}
 	return shortest_path
 }
 
-func robot_2_shortest(code []string, depth int) []string {
+func robot_2_shortest(code string, depth int) string {
 	board := robot_2_mapping
 
 	valid_map := make(map[coord]struct{})
@@ -99,28 +117,28 @@ func robot_2_shortest(code []string, depth int) []string {
 		valid_map[pos] = struct{}{}
 	}
 
-	shortest_path := []string{}
+	shortest_path := ""
 	for i := 0; i < len(code); i++ {
 
 		start := "A"
 		if i != 0 {
-			start = code[i-1]
+			start = string(code[i-1])
 		}
-		end := code[i]
+		end := string(code[i])
 
 		start_coord := robot_2_mapping[start]
 		end_coord := robot_2_mapping[end]
 
 		dir_combos := get_dir_combos(start_coord, end_coord, valid_map)
 
-		robot_2_codes := [][]string{}
+		robot_2_codes := []string{}
 		for _, dir_combo := range dir_combos {
-			robot_2_code := append(dir_combo, "A")
+			robot_2_code := dir_combo + "A"
 			robot_2_codes = append(robot_2_codes, robot_2_code)
 		}
 
 		// Potential recursive call
-		potential_paths := [][]string{}
+		potential_paths := []string{}
 		if depth > 0 {
 			for _, x := range robot_2_codes {
 				potential_path := robot_2_shortest(x, depth-1)
@@ -131,33 +149,33 @@ func robot_2_shortest(code []string, depth int) []string {
 		}
 
 		// Pick the shortest one
-		robot_2_shortest := []string{}
+		robot_2_shortest := ""
 		for _, potential_path := range potential_paths {
 			if (len(robot_2_shortest) == 0) || (len(potential_paths) < len(robot_2_shortest)) {
 				robot_2_shortest = potential_path
 			}
 		}
 
-		shortest_path = append(shortest_path, robot_2_shortest...)
+		shortest_path = shortest_path + robot_2_shortest
 
 	}
 	return shortest_path
 }
 
-func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) [][]string {
+func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) []string {
 	coord_combos := get_coord_combos(start, end, valid_map)
 
 	if start == end {
-		return [][]string{[]string{}}
+		return []string{""}
 	}
 
-	dir_combos := [][]string{}
+	dir_combos := []string{}
 	for _, coord_combo := range coord_combos {
 		dir_combos = append(dir_combos, coords_to_dirs(coord_combo))
 	}
 
 	lowest_changes := 99999
-	best := [][]string{}
+	best := []string{}
 	for _, dir_combo := range dir_combos {
 
 		if len(dir_combo) == 0 {
@@ -173,7 +191,7 @@ func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) [][]st
 			}
 		}
 		if changes < lowest_changes {
-			best = [][]string{dir_combo}
+			best = []string{dir_combo}
 			lowest_changes = changes
 		} else if changes == lowest_changes {
 			best = append(best, dir_combo)
@@ -259,7 +277,7 @@ func get_coord_combos(start coord, end coord, valid_map map[coord]struct{}) [][]
 	return new_combos
 }
 
-func coords_to_dirs(coords []coord) []string {
+func coords_to_dirs(coords []coord) string {
 	dirs := []string{}
 
 	for i := range coords {
@@ -276,26 +294,12 @@ func coords_to_dirs(coords []coord) []string {
 			dirs = append(dirs, "v")
 		}
 	}
-	return dirs
+	return strings.Join(dirs, "")
 }
 
 type coord struct {
 	x int
 	y int
-}
-
-func Solve2(input_lines string) int {
-	codes := parse_input(input_lines)
-	println(len(codes))
-
-	complexity_sum := 0
-	for _, code := range codes {
-		shortest_combo := robot_1_shortest(code, 24)
-		num := numeric(code)
-		complexity_sum += len(shortest_combo) * num
-	}
-
-	return complexity_sum
 }
 
 func abs(a int, b int) int {
