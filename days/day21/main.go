@@ -11,7 +11,7 @@ func Solve1(input_lines string) int {
 
 	complexity_sum := 0
 	for _, code := range codes {
-		shortest_combo := robot_1_shortest(code)
+		shortest_combo := robot_1_shortest(code, 1)
 		num := numeric(code)
 		complexity_sum += len(shortest_combo) * num
 	}
@@ -43,7 +43,7 @@ func numeric(code []string) int {
 // 	}
 // }
 
-func robot_1_shortest(code []string) []string {
+func robot_1_shortest(code []string, depth int) []string {
 	board := robot_1_mapping
 
 	valid_map := make(map[coord]struct{})
@@ -74,7 +74,7 @@ func robot_1_shortest(code []string) []string {
 		// Recursive call
 		potential_paths := [][]string{}
 		for _, robot_2_code := range robot_2_codes {
-			potential_path := robot_2_shortest(robot_2_code, 1)
+			potential_path := robot_2_shortest(robot_2_code, depth)
 			potential_paths = append(potential_paths, potential_path)
 		}
 		// potential_paths := robot_2_codes
@@ -161,7 +161,7 @@ func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) [][]st
 	for _, dir_combo := range dir_combos {
 
 		if len(dir_combo) == 0 {
-			println("test")
+			// println("test")
 		}
 
 		changes := 0
@@ -182,7 +182,7 @@ func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) [][]st
 
 	// Need to pick the best
 	if len(best) > 1 {
-		println("test")
+		// println("test")
 	}
 
 	return best
@@ -286,11 +286,16 @@ type coord struct {
 
 func Solve2(input_lines string) int {
 	codes := parse_input(input_lines)
+	println(len(codes))
 
-	// Calc difference when sorted
-	println((len(codes)))
+	complexity_sum := 0
+	for _, code := range codes {
+		shortest_combo := robot_1_shortest(code, 24)
+		num := numeric(code)
+		complexity_sum += len(shortest_combo) * num
+	}
 
-	return 1
+	return complexity_sum
 }
 
 func abs(a int, b int) int {
