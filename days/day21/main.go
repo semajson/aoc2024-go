@@ -1,6 +1,7 @@
 package day21
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -8,17 +9,30 @@ func Solve1(input_lines string) int {
 	codes := parse_input(input_lines)
 	println(len(codes))
 
-	robot_2_valid_map := make(map[coord]struct{})
-	for _, pos := range robot_2_mapping {
-		robot_2_valid_map[pos] = struct{}{}
-	}
-
+	complexity_sum := 0
 	for _, code := range codes {
-		test := robot_1_shortest(code)
-		println(len(test))
+		shortest_combo := robot_1_shortest(code)
+		num := numeric(code)
+		complexity_sum += len(shortest_combo) * num
 	}
 
-	return 1
+	return complexity_sum
+}
+
+func numeric(code []string) int {
+	nums := []string{}
+	for _, char := range code {
+		if char != "A" {
+			nums = append(nums, char)
+		}
+	}
+	num_str := strings.Join(nums, "")
+
+	num, err := strconv.Atoi(num_str)
+	if err != nil {
+		panic("error")
+	}
+	return num
 }
 
 // func robot_1_get_combos(code []string) []string {
@@ -133,11 +147,36 @@ func robot_2_shortest(code []string, depth int) []string {
 func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) [][]string {
 	coord_combos := get_coord_combos(start, end, valid_map)
 
-	dir_combos := [][]string{}
-	for _, coord_combo := range coord_combos {
-		dir_combos = append(dir_combos, coords_to_dirs(coord_combo))
+	if start == end {
+		return [][]string{[]string{}}
 	}
-	return dir_combos
+
+	lowest_changes := 99999
+	best := []string{}
+	for _, coord_combo := range coord_combos {
+		dir_combo := coords_to_dirs(coord_combo)
+
+		if len(dir_combo) == 0 {
+			println("test")
+		}
+
+		changes := 0
+		curr := dir_combo[0]
+		for i := 1; i < len(dir_combo); i++ {
+			if curr != dir_combo[i] {
+				changes += 1
+				curr = dir_combo[i]
+			}
+		}
+		if changes < lowest_changes {
+			best = dir_combo
+			lowest_changes = changes
+		}
+	}
+
+	// Need to pick the best
+
+	return [][]string{best}
 }
 
 // Robot 1
