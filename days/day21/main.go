@@ -10,13 +10,13 @@ func Solve1(input_lines string) int {
 	println(len(codes))
 
 	complexity_sum := 0
-	lookup := make(map[lookup_key]string)
+	lookup := make(map[lookup_key]int)
 
 	for _, code := range codes {
 		code := strings.Join(code, "")
-		shortest_combo := robot_1_shortest(code, 1, lookup)
+		shortest_len := robot_1_shortest(code, 1, lookup)
 		num := numeric(code)
-		complexity_sum += len(shortest_combo) * num
+		complexity_sum += shortest_len * num
 	}
 
 	return complexity_sum
@@ -27,13 +27,13 @@ func Solve2(input_lines string) int {
 	println(len(codes))
 
 	complexity_sum := 0
-	lookup := make(map[lookup_key]string)
+	lookup := make(map[lookup_key]int)
 
 	for _, code := range codes {
 		code := strings.Join(code, "")
-		shortest_combo := robot_1_shortest(code, 24, lookup)
+		shortest_len := robot_1_shortest(code, 24, lookup)
 		num := numeric(code)
-		complexity_sum += len(shortest_combo) * num
+		complexity_sum += shortest_len * num
 	}
 
 	return complexity_sum
@@ -69,7 +69,7 @@ func numeric(code string) int {
 // 	}
 // }
 
-func robot_1_shortest(code string, depth int, lookup map[lookup_key]string) string {
+func robot_1_shortest(code string, depth int, lookup map[lookup_key]int) int {
 	board := robot_1_mapping
 
 	valid_map := make(map[coord]struct{})
@@ -77,7 +77,7 @@ func robot_1_shortest(code string, depth int, lookup map[lookup_key]string) stri
 		valid_map[pos] = struct{}{}
 	}
 
-	shortest_path := ""
+	shortest_len := 0
 	for i := 0; i < len(code); i++ {
 
 		start := "A"
@@ -98,7 +98,7 @@ func robot_1_shortest(code string, depth int, lookup map[lookup_key]string) stri
 		}
 
 		// Recursive call
-		potential_paths := []string{}
+		potential_paths := []int{}
 		for _, robot_2_code := range robot_2_codes {
 			potential_path := robot_2_shortest(robot_2_code, depth, lookup)
 			potential_paths = append(potential_paths, potential_path)
@@ -106,18 +106,18 @@ func robot_1_shortest(code string, depth int, lookup map[lookup_key]string) stri
 		// potential_paths := robot_2_codes
 
 		// Pick the shortest one
-		robot_2_shortest := ""
+		robot_2_shortest := -1
 		for _, potential_path := range potential_paths {
-			if (len(robot_2_shortest) == 0) || (len(potential_path) < len(robot_2_shortest)) {
+			if (robot_2_shortest == -1) || potential_path < robot_2_shortest {
 				robot_2_shortest = potential_path
 			}
 		}
-		shortest_path = shortest_path + robot_2_shortest
+		shortest_len = shortest_len + robot_2_shortest
 	}
-	return shortest_path
+	return shortest_len
 }
 
-func robot_2_shortest(code string, depth int, lookup map[lookup_key]string) string {
+func robot_2_shortest(code string, depth int, lookup map[lookup_key]int) int {
 	if len(lookup) > 0 && len(lookup)%1000 == 0 {
 		println("tests")
 	}
@@ -135,7 +135,7 @@ func robot_2_shortest(code string, depth int, lookup map[lookup_key]string) stri
 		valid_map[pos] = struct{}{}
 	}
 
-	shortest_path := ""
+	shortest_len := 0
 	for i := 0; i < len(code); i++ {
 
 		start := "A"
@@ -147,39 +147,89 @@ func robot_2_shortest(code string, depth int, lookup map[lookup_key]string) stri
 		start_coord := robot_2_mapping[start]
 		end_coord := robot_2_mapping[end]
 
-		dir_combos := get_dir_combos(start_coord, end_coord, valid_map)
+		// dir_combos := get_dir_combos(start_coord, end_coord, valid_map)
+		// dir_combos := []string{get_dir_best_2(start_coord, end_coord)}
+		dir_combo := get_dir_best_2(start_coord, end_coord)
 
-		robot_2_codes := []string{}
-		for _, dir_combo := range dir_combos {
-			robot_2_code := dir_combo + "A"
-			robot_2_codes = append(robot_2_codes, robot_2_code)
-		}
+		robot_2_code := dir_combo + "A"
 
 		// Potential recursive call
-		potential_paths := []string{}
+		shortest := 0
 		if depth > 0 {
-			for _, x := range robot_2_codes {
-				potential_path := robot_2_shortest(x, depth-1, lookup)
-				potential_paths = append(potential_paths, potential_path)
-			}
+			// potential_path := robot_2_shortest(x, depth-1, lookup)
+			// potential_paths = append(potential_paths, potential_path)
+			shortest = robot_2_shortest(robot_2_code, depth-1, lookup)
 		} else {
-			potential_paths = robot_2_codes
+			shortest = len(robot_2_code)
 		}
 
-		// Pick the shortest one
-		robot_2_shortest := ""
-		for _, potential_path := range potential_paths {
-			if (len(robot_2_shortest) == 0) || (len(potential_paths) < len(robot_2_shortest)) {
-				robot_2_shortest = potential_path
-			}
-		}
+		// // Pick the shortest one
+		// robot_2_shortest := ""
+		// for _, potential_path := range potential_paths {
+		// 	if (len(robot_2_shortest) == 0) || (len(potential_paths) < len(robot_2_shortest)) {
+		// 		robot_2_shortest = potential_path
+		// 	}
+		// }
 
-		shortest_path = shortest_path + robot_2_shortest
+		shortest_len = shortest_len + shortest
 
 	}
 
-	lookup[key] = shortest_path
-	return shortest_path
+	lookup[key] = shortest_len
+	return shortest_len
+}
+
+func get_dir_best_2(start coord, end coord) string {
+	c1_0 := coord{1, 0}
+	c2_0 := coord{2, 0}
+	c0_1 := coord{0, 1}
+	c1_1 := coord{1, 1}
+	c2_1 := coord{2, 1}
+
+	if start == end {
+		return ""
+	} else if start == c2_0 && end == c1_0 {
+		return "<"
+	} else if start == c2_0 && end == c0_1 {
+		return "v<<"
+	} else if start == c2_0 && end == c1_1 {
+		return "<v" // unsure
+	} else if start == c2_0 && end == c2_1 {
+		return "v"
+	} else if start == c1_0 && end == c2_0 {
+		return ">"
+	} else if start == c1_0 && end == c0_1 {
+		return "v<"
+	} else if start == c1_0 && end == c1_1 {
+		return "v"
+	} else if start == c1_0 && end == c2_1 {
+		return "v>"
+	} else if start == c0_1 && end == c1_0 {
+		return ">^"
+	} else if start == c0_1 && end == c2_0 {
+		return ">>^"
+	} else if start == c0_1 && end == c1_1 {
+		return ">"
+	} else if start == c0_1 && end == c2_1 {
+		return ">>"
+	} else if start == c1_1 && end == c1_0 {
+		return "^"
+	} else if start == c1_1 && end == c2_0 {
+		return ">^"
+	} else if start == c1_1 && end == c0_1 {
+		return "<"
+	} else if start == c1_1 && end == c2_1 {
+		return ">"
+	} else if start == c2_1 && end == c1_0 {
+		return "<^"
+	} else if start == c2_1 && end == c2_0 {
+		return "^"
+	} else if start == c2_1 && end == c0_1 {
+		return "<<"
+	} else if start == c2_1 && end == c1_1 {
+		return "<"
+	}
+	panic("unknown")
 }
 
 func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) []string {
