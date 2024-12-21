@@ -10,10 +10,11 @@ func Solve1(input_lines string) int {
 	println(len(codes))
 
 	complexity_sum := 0
-	// lookup := make(map[])
+	lookup := make(map[lookup_key]string)
+
 	for _, code := range codes {
 		code := strings.Join(code, "")
-		shortest_combo := robot_1_shortest(code, 1)
+		shortest_combo := robot_1_shortest(code, 1, lookup)
 		num := numeric(code)
 		complexity_sum += len(shortest_combo) * num
 	}
@@ -26,14 +27,21 @@ func Solve2(input_lines string) int {
 	println(len(codes))
 
 	complexity_sum := 0
+	lookup := make(map[lookup_key]string)
+
 	for _, code := range codes {
 		code := strings.Join(code, "")
-		shortest_combo := robot_1_shortest(code, 24)
+		shortest_combo := robot_1_shortest(code, 24, lookup)
 		num := numeric(code)
 		complexity_sum += len(shortest_combo) * num
 	}
 
 	return complexity_sum
+}
+
+type lookup_key struct {
+	code  string
+	depth int
 }
 
 func numeric(code string) int {
@@ -61,7 +69,7 @@ func numeric(code string) int {
 // 	}
 // }
 
-func robot_1_shortest(code string, depth int) string {
+func robot_1_shortest(code string, depth int, lookup map[lookup_key]string) string {
 	board := robot_1_mapping
 
 	valid_map := make(map[coord]struct{})
@@ -92,7 +100,7 @@ func robot_1_shortest(code string, depth int) string {
 		// Recursive call
 		potential_paths := []string{}
 		for _, robot_2_code := range robot_2_codes {
-			potential_path := robot_2_shortest(robot_2_code, depth)
+			potential_path := robot_2_shortest(robot_2_code, depth, lookup)
 			potential_paths = append(potential_paths, potential_path)
 		}
 		// potential_paths := robot_2_codes
@@ -109,7 +117,13 @@ func robot_1_shortest(code string, depth int) string {
 	return shortest_path
 }
 
-func robot_2_shortest(code string, depth int) string {
+func robot_2_shortest(code string, depth int, lookup map[lookup_key]string) string {
+	key := lookup_key{code, depth}
+	val, exists := lookup[key]
+	if exists {
+		return val
+	}
+
 	board := robot_2_mapping
 
 	valid_map := make(map[coord]struct{})
@@ -141,7 +155,7 @@ func robot_2_shortest(code string, depth int) string {
 		potential_paths := []string{}
 		if depth > 0 {
 			for _, x := range robot_2_codes {
-				potential_path := robot_2_shortest(x, depth-1)
+				potential_path := robot_2_shortest(x, depth-1, lookup)
 				potential_paths = append(potential_paths, potential_path)
 			}
 		} else {
@@ -159,6 +173,8 @@ func robot_2_shortest(code string, depth int) string {
 		shortest_path = shortest_path + robot_2_shortest
 
 	}
+
+	lookup[key] = shortest_path
 	return shortest_path
 }
 
