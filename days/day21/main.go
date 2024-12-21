@@ -82,7 +82,7 @@ func robot_1_shortest(code []string) []string {
 		// Pick the shortest one
 		robot_2_shortest := []string{}
 		for _, potential_path := range potential_paths {
-			if (len(robot_2_shortest) == 0) || (len(potential_paths) < len(robot_2_shortest)) {
+			if (len(robot_2_shortest) == 0) || (len(potential_path) < len(robot_2_shortest)) {
 				robot_2_shortest = potential_path
 			}
 		}
@@ -151,10 +151,14 @@ func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) [][]st
 		return [][]string{[]string{}}
 	}
 
-	lowest_changes := 99999
-	best := []string{}
+	dir_combos := [][]string{}
 	for _, coord_combo := range coord_combos {
-		dir_combo := coords_to_dirs(coord_combo)
+		dir_combos = append(dir_combos, coords_to_dirs(coord_combo))
+	}
+
+	lowest_changes := 99999
+	best := [][]string{}
+	for _, dir_combo := range dir_combos {
 
 		if len(dir_combo) == 0 {
 			println("test")
@@ -169,14 +173,19 @@ func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) [][]st
 			}
 		}
 		if changes < lowest_changes {
-			best = dir_combo
+			best = [][]string{dir_combo}
 			lowest_changes = changes
+		} else if changes == lowest_changes {
+			best = append(best, dir_combo)
 		}
 	}
 
 	// Need to pick the best
+	if len(best) > 1 {
+		println("test")
+	}
 
-	return [][]string{best}
+	return best
 }
 
 // Robot 1

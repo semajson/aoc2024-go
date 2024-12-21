@@ -26,6 +26,16 @@ func TestDayExample2P1(t *testing.T) {
 	}
 }
 
+func TestDayExample5P1(t *testing.T) {
+	example := `379A`
+	result := Solve1(example)
+	expect := 64 * 379
+
+	if result != expect {
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+	}
+}
+
 func TestDayExample3P1(t *testing.T) {
 	example := `286A
 974A
