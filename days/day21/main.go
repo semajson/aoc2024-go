@@ -118,6 +118,10 @@ func robot_1_shortest(code string, depth int, lookup map[lookup_key]string) stri
 }
 
 func robot_2_shortest(code string, depth int, lookup map[lookup_key]string) string {
+	if len(lookup) > 0 && len(lookup)%1000 == 0 {
+		println("tests")
+	}
+
 	key := lookup_key{code, depth}
 	val, exists := lookup[key]
 	if exists {
@@ -216,7 +220,7 @@ func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) []stri
 
 	// Need to pick the best
 	if len(best) > 1 {
-		// println("test")
+		println("test")
 	}
 
 	return best

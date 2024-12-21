@@ -63,3 +63,17 @@ func TestDayExampleP2(t *testing.T) {
 		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
 	}
 }
+
+func TestDayExample2P2(t *testing.T) {
+	example := `286A
+974A
+189A
+802A
+805A`
+	result := Solve2(example)
+	expect := 31
+
+	if result != expect {
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+	}
+}
