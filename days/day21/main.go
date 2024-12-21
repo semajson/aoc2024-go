@@ -5,9 +5,32 @@ import (
 	"strings"
 )
 
+// Robot 1
+var robot_1_mapping = map[string]coord{
+	"7": {0, 0},
+	"8": {1, 0},
+	"9": {2, 0},
+	"4": {0, 1},
+	"5": {1, 1},
+	"6": {2, 1},
+	"1": {0, 2},
+	"2": {1, 2},
+	"3": {2, 2},
+	"0": {1, 3},
+	"A": {2, 3},
+}
+
+// Robot 1
+var robot_2_mapping = map[string]coord{
+	"^": {1, 0},
+	"A": {2, 0},
+	"<": {0, 1},
+	"v": {1, 1},
+	">": {2, 1},
+}
+
 func Solve1(input_lines string) int {
 	codes := parse_input(input_lines)
-	println(len(codes))
 
 	complexity_sum := 0
 	lookup := make(map[lookup_key]int)
@@ -24,7 +47,6 @@ func Solve1(input_lines string) int {
 
 func Solve2(input_lines string) int {
 	codes := parse_input(input_lines)
-	println(len(codes))
 
 	complexity_sum := 0
 	lookup := make(map[lookup_key]int)
@@ -70,16 +92,19 @@ func numeric(code string) int {
 // }
 
 func robot_1_shortest(code string, depth int, lookup map[lookup_key]int) int {
-	board := robot_1_mapping
-
-	valid_map := make(map[coord]struct{})
-	for _, pos := range board {
-		valid_map[pos] = struct{}{}
+	// Build useful lookup structs
+	valid_map_r1 := make(map[coord]struct{})
+	for _, pos := range robot_1_mapping {
+		valid_map_r1[pos] = struct{}{}
+	}
+	valid_map_r2 := make(map[coord]struct{})
+	for _, pos := range robot_2_mapping {
+		valid_map_r2[pos] = struct{}{}
 	}
 
 	shortest_len := 0
 	for i := 0; i < len(code); i++ {
-
+		// Robots start on A
 		start := "A"
 		if i != 0 {
 			start = string(code[i-1])
@@ -89,7 +114,7 @@ func robot_1_shortest(code string, depth int, lookup map[lookup_key]int) int {
 		start_coord := robot_1_mapping[start]
 		end_coord := robot_1_mapping[end]
 
-		dir_combos := get_dir_combos(start_coord, end_coord, valid_map)
+		dir_combos := get_quickest_dir_combos(start_coord, end_coord, valid_map_r1)
 
 		robot_2_codes := []string{}
 		for _, dir_combo := range dir_combos {
@@ -100,10 +125,9 @@ func robot_1_shortest(code string, depth int, lookup map[lookup_key]int) int {
 		// Recursive call
 		potential_paths := []int{}
 		for _, robot_2_code := range robot_2_codes {
-			potential_path := robot_2_shortest(robot_2_code, depth, lookup)
+			potential_path := robot_2_shortest(robot_2_code, depth, lookup, valid_map_r2)
 			potential_paths = append(potential_paths, potential_path)
 		}
-		// potential_paths := robot_2_codes
 
 		// Pick the shortest one
 		robot_2_shortest := -1
@@ -117,27 +141,15 @@ func robot_1_shortest(code string, depth int, lookup map[lookup_key]int) int {
 	return shortest_len
 }
 
-func robot_2_shortest(code string, depth int, lookup map[lookup_key]int) int {
-	if len(lookup) > 0 && len(lookup)%1000 == 0 {
-		println("tests")
-	}
-
+func robot_2_shortest(code string, depth int, lookup map[lookup_key]int, valid_map_r2 map[coord]struct{}) int {
 	key := lookup_key{code, depth}
 	val, exists := lookup[key]
 	if exists {
 		return val
 	}
 
-	board := robot_2_mapping
-
-	valid_map := make(map[coord]struct{})
-	for _, pos := range board {
-		valid_map[pos] = struct{}{}
-	}
-
 	shortest_len := 0
 	for i := 0; i < len(code); i++ {
-
 		start := "A"
 		if i != 0 {
 			start = string(code[i-1])
@@ -147,31 +159,35 @@ func robot_2_shortest(code string, depth int, lookup map[lookup_key]int) int {
 		start_coord := robot_2_mapping[start]
 		end_coord := robot_2_mapping[end]
 
-		// dir_combos := get_dir_combos(start_coord, end_coord, valid_map)
-		// dir_combos := []string{get_dir_best_2(start_coord, end_coord)}
-		dir_combo := get_dir_best_2(start_coord, end_coord)
+		dir_combos := get_quickest_dir_combos(start_coord, end_coord, valid_map_r2)
 
-		robot_2_code := dir_combo + "A"
-
-		// Potential recursive call
-		shortest := 0
-		if depth > 0 {
-			// potential_path := robot_2_shortest(x, depth-1, lookup)
-			// potential_paths = append(potential_paths, potential_path)
-			shortest = robot_2_shortest(robot_2_code, depth-1, lookup)
-		} else {
-			shortest = len(robot_2_code)
+		robot_2_codes := []string{}
+		for _, dir_combo := range dir_combos {
+			robot_2_codes = append(robot_2_codes, dir_combo+"A")
 		}
 
-		// // Pick the shortest one
-		// robot_2_shortest := ""
-		// for _, potential_path := range potential_paths {
-		// 	if (len(robot_2_shortest) == 0) || (len(potential_paths) < len(robot_2_shortest)) {
-		// 		robot_2_shortest = potential_path
-		// 	}
-		// }
+		// Potential recursive call
+		potential_paths := []int{}
+		if depth > 0 {
+			for _, x := range robot_2_codes {
+				potential_path := robot_2_shortest(x, depth-1, lookup, valid_map_r2)
+				potential_paths = append(potential_paths, potential_path)
+			}
+		} else {
+			for _, x := range robot_2_codes {
+				potential_paths = append(potential_paths, len(x))
+			}
+		}
 
-		shortest_len = shortest_len + shortest
+		// Pick the shortest one
+		robot_2_shortest := -1
+		for _, potential_path := range potential_paths {
+			if (robot_2_shortest == -1) || potential_path < robot_2_shortest {
+				robot_2_shortest = potential_path
+			}
+		}
+
+		shortest_len = shortest_len + robot_2_shortest
 
 	}
 
@@ -179,125 +195,40 @@ func robot_2_shortest(code string, depth int, lookup map[lookup_key]int) int {
 	return shortest_len
 }
 
-func get_dir_best_2(start coord, end coord) string {
-	c1_0 := coord{1, 0}
-	c2_0 := coord{2, 0}
-	c0_1 := coord{0, 1}
-	c1_1 := coord{1, 1}
-	c2_1 := coord{2, 1}
-
-	if start == end {
-		return ""
-	} else if start == c2_0 && end == c1_0 {
-		return "<"
-	} else if start == c2_0 && end == c0_1 {
-		return "v<<"
-	} else if start == c2_0 && end == c1_1 {
-		return "<v" // unsure
-	} else if start == c2_0 && end == c2_1 {
-		return "v"
-	} else if start == c1_0 && end == c2_0 {
-		return ">"
-	} else if start == c1_0 && end == c0_1 {
-		return "v<"
-	} else if start == c1_0 && end == c1_1 {
-		return "v"
-	} else if start == c1_0 && end == c2_1 {
-		return "v>"
-	} else if start == c0_1 && end == c1_0 {
-		return ">^"
-	} else if start == c0_1 && end == c2_0 {
-		return ">>^"
-	} else if start == c0_1 && end == c1_1 {
-		return ">"
-	} else if start == c0_1 && end == c2_1 {
-		return ">>"
-	} else if start == c1_1 && end == c1_0 {
-		return "^"
-	} else if start == c1_1 && end == c2_0 {
-		return ">^"
-	} else if start == c1_1 && end == c0_1 {
-		return "<"
-	} else if start == c1_1 && end == c2_1 {
-		return ">"
-	} else if start == c2_1 && end == c1_0 {
-		return "<^"
-	} else if start == c2_1 && end == c2_0 {
-		return "^"
-	} else if start == c2_1 && end == c0_1 {
-		return "<<"
-	} else if start == c2_1 && end == c1_1 {
-		return "<"
-	}
-	panic("unknown")
-}
-
-func get_dir_combos(start coord, end coord, valid_map map[coord]struct{}) []string {
-	coord_combos := get_coord_combos(start, end, valid_map)
-
+func get_quickest_dir_combos(start coord, end coord, valid_map map[coord]struct{}) []string {
 	if start == end {
 		return []string{""}
 	}
 
+	// Find all dir combos (with min number of moves)
+	coord_combos := get_coord_combos(start, end, valid_map)
 	dir_combos := []string{}
 	for _, coord_combo := range coord_combos {
 		dir_combos = append(dir_combos, coords_to_dirs(coord_combo))
 	}
 
-	lowest_changes := 99999
-	best := []string{}
+	// Then filter to select dir combos with the minimum of
+	// direction changes
+	lowest_dir_changes := 99999
+	quickest_dir_combos := []string{}
 	for _, dir_combo := range dir_combos {
-
-		if len(dir_combo) == 0 {
-			// println("test")
-		}
-
-		changes := 0
+		dir_changes := 0
 		curr := dir_combo[0]
 		for i := 1; i < len(dir_combo); i++ {
 			if curr != dir_combo[i] {
-				changes += 1
+				dir_changes += 1
 				curr = dir_combo[i]
 			}
 		}
-		if changes < lowest_changes {
-			best = []string{dir_combo}
-			lowest_changes = changes
-		} else if changes == lowest_changes {
-			best = append(best, dir_combo)
+		if dir_changes < lowest_dir_changes {
+			quickest_dir_combos = []string{dir_combo}
+			lowest_dir_changes = dir_changes
+		} else if dir_changes == lowest_dir_changes {
+			quickest_dir_combos = append(quickest_dir_combos, dir_combo)
 		}
 	}
 
-	// Need to pick the best
-	if len(best) > 1 {
-		println("test")
-	}
-
-	return best
-}
-
-// Robot 1
-var robot_1_mapping = map[string]coord{
-	"7": {0, 0},
-	"8": {1, 0},
-	"9": {2, 0},
-	"4": {0, 1},
-	"5": {1, 1},
-	"6": {2, 1},
-	"1": {0, 2},
-	"2": {1, 2},
-	"3": {2, 2},
-	"0": {1, 3},
-	"A": {2, 3},
-}
-
-// Robot 1
-var robot_2_mapping = map[string]coord{
-	"^": {1, 0},
-	"A": {2, 0},
-	"<": {0, 1},
-	"v": {1, 1},
-	">": {2, 1},
+	return quickest_dir_combos
 }
 
 func get_coord_combos(start coord, end coord, valid_map map[coord]struct{}) [][]coord {
@@ -372,13 +303,6 @@ type coord struct {
 	y int
 }
 
-func abs(a int, b int) int {
-	if a > b {
-		return a - b
-	} else {
-		return b - a
-	}
-}
 func parse_input(input_lines string) [][]string {
 	codes := [][]string{}
 
