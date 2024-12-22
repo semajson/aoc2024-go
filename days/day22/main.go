@@ -67,7 +67,10 @@ func get_banana_lookup(secret int, all_seen map[[4]int]struct{}) map[[4]int]int 
 				lookup[diffs] = next % 10
 			}
 
-			all_seen[diffs] = struct{}{}
+			if next%10 == 9 {
+
+				all_seen[diffs] = struct{}{}
+			}
 		}
 		curr = next
 	}
