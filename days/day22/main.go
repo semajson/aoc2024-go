@@ -24,58 +24,50 @@ func Solve2(input_lines string) int {
 	nums := parse_input(input_lines)
 
 	banana_lookups := []map[[4]int]int{}
+	all_seen := make(map[[4]int]struct{})
 	for _, num := range nums {
-		banana_lookup := Get_num_bananas(num)
+		banana_lookup := get_banana_lookup(num, all_seen)
 		banana_lookups = append(banana_lookups, banana_lookup)
 	}
-
-	// Brute force :(
 	max_total := 0
-	for i := -9; i <= 9; i++ {
-		for j := -9; j <= 9; j++ {
-			for k := -9; k <= 9; k++ {
-				for l := -9; l <= 9; l++ {
-					seq := [4]int{i, j, k, l}
-
-					total := 0
-					for _, banana_lookup := range banana_lookups {
-						val, exists := banana_lookup[seq]
-						if exists {
-							total += val
-						}
-					}
-					if total > max_total {
-						max_total = total
-					}
-				}
+	for key, _ := range all_seen {
+		total := 0
+		for _, banana_lookup := range banana_lookups {
+			val, exists := banana_lookup[key]
+			if exists {
+				total += val
 			}
 		}
+		if total > max_total {
+			max_total = total
+		}
 	}
-
 	return max_total
 }
 
-func Get_num_bananas(secret int) map[[4]int]int {
+func get_banana_lookup(secret int, all_seen map[[4]int]struct{}) map[[4]int]int {
 
 	lookup := make(map[[4]int]int)
 
-	diffs := [4]int{99, 99, 99, 99}
+	diffs_buffer := [4]int{99, 99, 99, 99}
 	curr := secret
 	for i := 0; i < 2000; i++ {
 		next := get_next_secret(curr)
 		diff := (next%10 - curr%10) % 10
 
-		diffs[i%4] = diff
+		diffs_buffer[i%4] = diff
 
 		if i >= 4 {
-			key := [4]int{}
-			for j := range key {
-				key[j] = diffs[((i%4)+j+1)%4]
+			diffs := [4]int{}
+			for j := range diffs {
+				diffs[j] = diffs_buffer[((i%4)+j+1)%4]
 			}
-			_, present := lookup[key]
+			_, present := lookup[diffs]
 			if !present {
-				lookup[key] = next % 10
+				lookup[diffs] = next % 10
 			}
+
+			all_seen[diffs] = struct{}{}
 		}
 		curr = next
 	}
