@@ -63,10 +63,10 @@ func Solve2(input_lines string) int {
 
 func calc_complexity_sum(codes []string, depth int) int {
 	complexity_sum := 0
-	r2_lookup := make(map[lookup_key]int)
+	lookup := make(map[lookup_key]int)
 
 	for _, code := range codes {
-		shortest_len := get_min_len(code, depth, r2_lookup, true)
+		shortest_len := get_min_len(code, depth, lookup, true)
 		num := numeric(code)
 		complexity_sum += shortest_len * num
 	}
@@ -89,12 +89,15 @@ func numeric(code string) int {
 }
 
 func get_min_len(code string, depth int, lookup map[lookup_key]int, num_pad bool) int {
+	// Check lookup
 	key := lookup_key{code, depth}
 	val, exists := lookup[key]
 	if exists {
 		return val
 	}
 
+	// Get the correct button mapping depending on the
+	// keypad type
 	var valid_map map[coord]struct{}
 	var coord_map map[string]coord
 	if num_pad {
@@ -108,6 +111,8 @@ func get_min_len(code string, depth int, lookup map[lookup_key]int, num_pad bool
 	// Always start from the A key
 	code = "A" + code
 
+	// Take 2 adjacent parts of the code at a time and workout the
+	// min instruction length needed for them
 	total_shortest_len := 0
 	for i := 0; i < len(code)-1; i++ {
 		start := string(code[i])
@@ -117,28 +122,27 @@ func get_min_len(code string, depth int, lookup map[lookup_key]int, num_pad bool
 		end_coord := coord_map[end]
 
 		dir_paths := get_dir_paths(start_coord, end_coord, valid_map)
-
-		robot_2_codes := []string{}
+		robot_codes := []string{}
 		for _, dir_path := range dir_paths {
-			robot_2_codes = append(robot_2_codes, dir_path+"A")
+			robot_codes = append(robot_codes, dir_path+"A")
 		}
 
 		// Potential recursive call
-		options := []int{}
-		for _, x := range robot_2_codes {
+		path_lens := []int{}
+		for _, robot_code := range robot_codes {
 			if depth > 0 {
-				option := get_min_len(x, depth-1, lookup, false)
-				options = append(options, option)
+				path_len := get_min_len(robot_code, depth-1, lookup, false)
+				path_lens = append(path_lens, path_len)
 			} else {
-				options = append(options, len(x))
+				path_lens = append(path_lens, len(robot_code))
 			}
 		}
 
 		// Pick the shortest option
 		shortest_len := -1
-		for _, option := range options {
-			if (shortest_len == -1) || option < shortest_len {
-				shortest_len = option
+		for _, path_len := range path_lens {
+			if (shortest_len == -1) || path_len < shortest_len {
+				shortest_len = path_len
 			}
 		}
 
