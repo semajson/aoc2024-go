@@ -96,11 +96,11 @@ func r1_shortest(code string, depth int, lookup map[lookup_key]int) int {
 		start_coord := robot_1_mapping[start]
 		end_coord := robot_1_mapping[end]
 
-		dir_combos := get_quickest_dir_combos(start_coord, end_coord, valid_map_r1)
+		dir_paths := get_dir_paths(start_coord, end_coord, valid_map_r1)
 
 		robot_2_codes := []string{}
-		for _, dir_combo := range dir_combos {
-			robot_2_code := dir_combo + "A"
+		for _, dir_path := range dir_paths {
+			robot_2_code := dir_path + "A"
 			robot_2_codes = append(robot_2_codes, robot_2_code)
 		}
 
@@ -141,11 +141,11 @@ func r2_shortest(code string, depth int, lookup map[lookup_key]int, valid_map_r2
 		start_coord := robot_2_mapping[start]
 		end_coord := robot_2_mapping[end]
 
-		dir_combos := get_quickest_dir_combos(start_coord, end_coord, valid_map_r2)
+		dir_paths := get_dir_paths(start_coord, end_coord, valid_map_r2)
 
 		robot_2_codes := []string{}
-		for _, dir_combo := range dir_combos {
-			robot_2_codes = append(robot_2_codes, dir_combo+"A")
+		for _, dir_path := range dir_paths {
+			robot_2_codes = append(robot_2_codes, dir_path+"A")
 		}
 
 		// Potential recursive call
@@ -174,44 +174,23 @@ func r2_shortest(code string, depth int, lookup map[lookup_key]int, valid_map_r2
 	return total_shortest_len
 }
 
-func get_quickest_dir_combos(start coord, end coord, valid_map map[coord]struct{}) []string {
+func get_dir_paths(start coord, end coord, valid_map map[coord]struct{}) []string {
 	if start == end {
 		return []string{""}
 	}
 
-	// Find all dir combos (with min number of moves)
-	coord_combos := get_coord_combos(start, end, valid_map)
-	dir_combos := []string{}
-	for _, coord_combo := range coord_combos {
-		dir_combos = append(dir_combos, coords_to_dirs(coord_combo))
+	// Find all dir paths (with min number of moves)
+	coord_paths := get_coord_paths(start, end, valid_map)
+	dir_paths := []string{}
+	for _, coord_path := range coord_paths {
+		dir_paths = append(dir_paths, coords_to_dirs(coord_path))
 	}
 
-	// Then filter to select dir combos with the minimum of
-	// direction changes
-	lowest_dir_changes := 99999
-	quickest_dir_combos := []string{}
-	for _, dir_combo := range dir_combos {
-		dir_changes := 0
-		curr := dir_combo[0]
-		for i := 1; i < len(dir_combo); i++ {
-			if curr != dir_combo[i] {
-				dir_changes += 1
-				curr = dir_combo[i]
-			}
-		}
-		if dir_changes < lowest_dir_changes {
-			quickest_dir_combos = []string{dir_combo}
-			lowest_dir_changes = dir_changes
-		} else if dir_changes == lowest_dir_changes {
-			quickest_dir_combos = append(quickest_dir_combos, dir_combo)
-		}
-	}
-
-	return quickest_dir_combos
+	return dir_paths
 }
 
-func get_coord_combos(start coord, end coord, valid_map map[coord]struct{}) [][]coord {
-	combos := [][]coord{}
+func get_coord_paths(start coord, end coord, valid_map map[coord]struct{}) [][]coord {
+	paths := [][]coord{}
 
 	if start == end {
 		return [][]coord{{start}}
@@ -222,39 +201,39 @@ func get_coord_combos(start coord, end coord, valid_map map[coord]struct{}) [][]
 		next := coord{start.x - 1, start.y}
 		_, valid := valid_map[next]
 		if valid {
-			combos = append(combos, get_coord_combos(next, end, valid_map)...)
+			paths = append(paths, get_coord_paths(next, end, valid_map)...)
 		}
 	}
 	if (start.x - end.x) < 0 {
 		next := coord{start.x + 1, start.y}
 		_, valid := valid_map[next]
 		if valid {
-			combos = append(combos, get_coord_combos(next, end, valid_map)...)
+			paths = append(paths, get_coord_paths(next, end, valid_map)...)
 		}
 	}
 	if (start.y - end.y) > 0 {
 		next := coord{start.x, start.y - 1}
 		_, valid := valid_map[next]
 		if valid {
-			combos = append(combos, get_coord_combos(next, end, valid_map)...)
+			paths = append(paths, get_coord_paths(next, end, valid_map)...)
 		}
 	}
 	if (start.y - end.y) < 0 {
 		next := coord{start.x, start.y + 1}
 		_, valid := valid_map[next]
 		if valid {
-			combos = append(combos, get_coord_combos(next, end, valid_map)...)
+			paths = append(paths, get_coord_paths(next, end, valid_map)...)
 		}
 	}
 
-	new_combos := [][]coord{}
-	for _, combo := range combos {
-		new_combo := []coord{start}
-		new_combo = append(new_combo, combo...)
-		new_combos = append(new_combos, new_combo)
+	new_paths := [][]coord{}
+	for _, path := range paths {
+		new_path := []coord{start}
+		new_path = append(new_path, path...)
+		new_paths = append(new_paths, new_path)
 	}
 
-	return new_combos
+	return new_paths
 }
 
 func coords_to_dirs(coords []coord) string {
