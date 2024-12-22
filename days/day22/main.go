@@ -23,6 +23,13 @@ func Solve1(input_lines string) int {
 func Solve2(input_lines string) int {
 	nums := parse_input(input_lines)
 
+	banana_lookups := []map[[4]int]int{}
+	for _, num := range nums {
+		banana_lookup := Get_num_bananas(num)
+		banana_lookups = append(banana_lookups, banana_lookup)
+	}
+
+	// Brute force :(
 	max_total := 0
 	for i := -9; i <= 9; i++ {
 		for j := -9; j <= 9; j++ {
@@ -30,26 +37,15 @@ func Solve2(input_lines string) int {
 				for l := -9; l <= 9; l++ {
 					seq := [4]int{i, j, k, l}
 
-					if seq[0] == -2 && seq[1] == 1 && seq[2] == -1 && seq[3] == 3 {
-						println("test")
-
-					}
-
-					if seq[0] == -9 && seq[1] == 9 && seq[2] == -1 && seq[3] == 0 {
-						println("test")
-
-					}
-
 					total := 0
-					for _, num := range nums {
-						num_bananas := Get_num_bananas(num, seq)
-						total += num_bananas
+					for _, banana_lookup := range banana_lookups {
+						val, exists := banana_lookup[seq]
+						if exists {
+							total += val
+						}
 					}
 					if total > max_total {
 						max_total = total
-					}
-					if total == 24 {
-						println("error")
 					}
 				}
 			}
@@ -59,8 +55,10 @@ func Solve2(input_lines string) int {
 	return max_total
 }
 
-func Get_num_bananas(secret int, seq [4]int) int {
-	// Todo, make diffs more efficient
+func Get_num_bananas(secret int) map[[4]int]int {
+
+	lookup := make(map[[4]int]int)
+
 	diffs := [4]int{99, 99, 99, 99}
 	curr := secret
 	for i := 0; i < 2000; i++ {
@@ -70,23 +68,19 @@ func Get_num_bananas(secret int, seq [4]int) int {
 		diffs[i%4] = diff
 
 		if i >= 4 {
-			match := true
-			for j := range seq {
-				if seq[j] != diffs[((i%4)+j+1)%4] {
-					match = false
-					break
-				}
-
+			key := [4]int{}
+			for j := range key {
+				key[j] = diffs[((i%4)+j+1)%4]
 			}
-			if match {
-				println("test")
-				return next % 10
+			_, present := lookup[key]
+			if !present {
+				lookup[key] = next % 10
 			}
 		}
-
 		curr = next
 	}
-	return 0
+
+	return lookup
 }
 
 func get_next_secret(curr_secret int) int {
@@ -112,7 +106,6 @@ func parse_input(input_lines string) []int {
 	nums := []int{}
 
 	for _, line := range strings.Split(input_lines, "\n") {
-
 		num, _ := strconv.Atoi(line)
 		nums = append(nums, num)
 	}
