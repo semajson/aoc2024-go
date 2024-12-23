@@ -4,8 +4,6 @@ import (
 	"slices"
 	"sort"
 	"strings"
-
-	combinations "github.com/mxschmitt/golang-combinations"
 )
 
 func Solve1(input_lines string) int {
@@ -79,7 +77,7 @@ func Solve2(input_lines string) string {
 	for node := range all_nodes {
 		neighbours := reachable[node]
 
-		// Don't look at nodes already processed
+		// Skip nodes already processed
 		neighbours_not_seen := []string{}
 		for _, neighbour := range neighbours {
 			_, visited := seen[neighbour]
@@ -91,6 +89,7 @@ func Solve2(input_lines string) string {
 		// Generate subsets + look for connected users
 		for _, subset := range get_subsets(neighbours_not_seen) {
 			if (len(subset) + 1) > len(best) {
+				// Contender for "best" game
 				if is_connected(subset, reachable) {
 					best = append(subset, node)
 				}
@@ -106,8 +105,22 @@ func Solve2(input_lines string) string {
 }
 
 func get_subsets(nodes []string) [][]string {
-	// Todo - write myself
-	return combinations.All(nodes)
+	combinations := [][]string{}
+
+	// Clever bitwise stuff to build combinations
+	// Implemented with help from:
+	// github.com/mxschmitt/golang-combinations combinations.All()
+	n := len(nodes) * len(nodes)
+	for i := 0; i < n; i++ {
+		subset := []string{}
+		for j, node := range nodes {
+			if (i>>j)&1 == 0 {
+				subset = append(subset, node)
+			}
+		}
+		combinations = append(combinations, subset)
+	}
+	return combinations
 }
 
 func is_connected(nodes []string, reachable map[string][]string) bool {
