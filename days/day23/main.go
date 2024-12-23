@@ -14,7 +14,7 @@ func Solve1(input_lines string) int {
 
 	multiplayer_three_games := make(map[[3]string]struct{})
 	println(len(reachable))
-	for node, _ := range all_nodes {
+	for node := range all_nodes {
 		for _, neighbour := range reachable[node] {
 			neighbours := reachable[node]
 			neighbour_reachable := reachable[neighbour]
@@ -37,16 +37,17 @@ func Solve1(input_lines string) int {
 		}
 	}
 
-	games_with_t := 0
-	for game, _ := range multiplayer_three_games {
+	// Count number of games container user starting with t
+	games_with_t_user := 0
+	for game := range multiplayer_three_games {
 		for _, node := range game {
 			if strings.HasPrefix(node, "t") {
-				games_with_t += 1
+				games_with_t_user += 1
 				break
 			}
 		}
 	}
-	return games_with_t
+	return games_with_t_user
 }
 
 func build_graph(edges [][2]string) (map[string][]string, map[string]struct{}) {
@@ -124,11 +125,6 @@ func get_subsets(nodes []string) [][]string {
 }
 
 func is_connected(nodes []string, reachable map[string][]string) bool {
-	lookup := make(map[string]bool)
-	for _, elem := range nodes {
-		lookup[elem] = true
-	}
-
 	for _, node := range nodes {
 		neighbours := reachable[node]
 
