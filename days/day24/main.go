@@ -24,16 +24,18 @@ func Solve2(input_lines string) string {
 
 	swaps_list := [][][2]string{[][2]string{}}
 	// potential_swaps = get_possible_swaps(wire_gates, potential_swaps)
+	for _, swap := range get_possible_swaps(wire_gates, [][2]string{}) {
+		swaps_list = append(swaps_list, [][2]string{swap})
+	}
 
-	for i := 0; len(swaps_list[0]) == 0 || len(swaps_list) != 1; i++ {
+	for i := 0; i < 45; i++ {
 		println("Checking i", i)
 		println("Swap list len is", len(swaps_list))
 
 		new_swaps_list := [][][2]string{}
-		check_up_to := int(math.Pow(2, float64(i)))
 		for _, swaps := range swaps_list {
 
-			new_swaps_list = append(new_swaps_list, check_and_maybe_swap(wire_gates, swaps, check_up_to, 1)...)
+			new_swaps_list = append(new_swaps_list, check_and_maybe_swap(wire_gates, swaps, i, 1)...)
 
 		}
 		swaps_list = new_swaps_list
@@ -53,7 +55,7 @@ func Solve2(input_lines string) string {
 func check_and_maybe_swap(wire_gates map[string]gate, current_swaps [][2]string, z_test int, depth int) [][][2]string {
 	new_swaps_list := [][][2]string{}
 
-	if valid_up_to(z_test, wire_gates, current_swaps) {
+	if valid_up_plus_swap(z_test, wire_gates, current_swaps) {
 		new_swaps_list = append(new_swaps_list, current_swaps)
 	} else {
 		if len(current_swaps) >= max_swaps || depth == 0 {
@@ -103,7 +105,7 @@ func get_padded_num(num int) string {
 	return output
 }
 
-func valid_up_to(z_end int, wire_gates map[string]gate, swaps [][2]string) bool {
+func valid_up_plus_swap(z_end int, wire_gates map[string]gate, swaps [][2]string) bool {
 	// Apply swaps
 	for _, swaps := range swaps {
 		a := swaps[0]
@@ -114,23 +116,15 @@ func valid_up_to(z_end int, wire_gates map[string]gate, swaps [][2]string) bool 
 		wire_gates[b] = a_gate
 	}
 
-	valid := true
-	for x := 0; x < z_end; x++ {
-		for y := 0; y < z_end; y++ {
-			wire_vals := map[string]int{}
-			Set_x_y(wire_vals, x, y)
+	if len(swaps) > 1 && len(swaps[0]) > 0 {
+		if swaps[0][0] == "z00" && swaps[0][1] == "z05" {
+			if swaps[1][0] == "z01" && swaps[1][1] == "z02" {
 
-			z_out := get_z_output(wire_vals, wire_gates)
-
-			if z_out != (x + y) {
-				valid = false
-				break
+				println("in here")
 			}
 		}
-		if !valid {
-			break
-		}
 	}
+	valid := valid_up_to(z_end, wire_gates)
 
 	// Undo swaps
 	for _, swaps := range swaps {
@@ -143,6 +137,56 @@ func valid_up_to(z_end int, wire_gates map[string]gate, swaps [][2]string) bool 
 	}
 
 	return valid
+}
+
+func valid_up_to(z_end int, wire_gates map[string]gate) bool {
+
+	for x := 0; x < z_end; x++ {
+		for y := 0; y < z_end; y++ {
+			wire_vals := map[string]int{}
+			Set_x_y(wire_vals, x, y)
+
+			z_out := get_z_output(wire_vals, wire_gates)
+
+			if z_out != (x + y) {
+				return false
+			}
+		}
+
+	}
+	return true
+}
+
+func valid_up_to_test(z_end int, wire_gates map[string]gate) bool {
+	if z_end == 0 {
+		return true
+	}
+
+	var x int
+	var y int
+
+	// Check carry
+	x = int(math.Pow(2, float64(z_end))) - 1
+	y = 1
+	wire_vals := map[string]int{}
+	Set_x_y(wire_vals, x, y)
+	z_out := get_z_output(wire_vals, wire_gates)
+	if z_out != (x + y) {
+		return false
+	}
+
+	x = 1
+	y = int(math.Pow(2, float64(z_end))) - 1
+	wire_vals = map[string]int{}
+	Set_x_y(wire_vals, x, y)
+	z_out = get_z_output(wire_vals, wire_gates)
+	if z_out != (x + y) {
+		return false
+	}
+
+	// Undo swap
+
+	return valid_up_to(z_end-1, wire_gates)
 }
 
 func Set_x_y(wire_vals map[string]int, x int, y int) {
@@ -195,6 +239,11 @@ func get_possible_swaps(wire_gates map[string]gate, current_swaps [][2]string) [
 				continue
 			}
 			possible_swap := [2]string{i_wire, j_wire}
+
+			tmp := possible_swap[:]
+			sort.Strings(tmp)
+			copy(tmp, possible_swap[:])
+
 			possible_swaps = append(possible_swaps, possible_swap)
 		}
 	}
