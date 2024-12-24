@@ -78,20 +78,142 @@ tnw OR pbm -> gnj`
 }
 
 func TestDayExampleP2(t *testing.T) {
-	example := `x00: 1
+	example := `x00: 0
 x01: 1
-x02: 1
+x02: 0
+x03: 1
+x04: 0
+x05: 1
 y00: 0
-y01: 1
-y02: 0
+y01: 0
+y02: 1
+y03: 1
+y04: 0
+y05: 1
 
-x00 AND y00 -> z00
-x01 XOR y01 -> z01
-x02 OR y02 -> z02`
+x00 AND y00 -> z05
+x01 AND y01 -> z02
+x02 AND y02 -> z01
+x03 AND y03 -> z03
+x04 AND y04 -> z04
+x05 AND y05 -> z00`
 	result := Solve2(example)
-	expect := 31
+	expect := "z00,z01,z02,z05"
 
 	if result != expect {
-		t.Errorf("Failed! \nSolve(%q)\nEquals: %d; \nWanted: %d", example, result, expect)
+		t.Errorf("Failed! \nSolve(%q)\nEquals: %s; \nWanted: %s", example, result, expect)
+	}
+}
+
+func TestSet_x_y(t *testing.T) {
+	wire_vals := map[string]int{}
+
+	Set_x_y(wire_vals, 11, 13)
+
+	// x00: 1
+	val, exists := wire_vals["x00"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for x00")
+	}
+
+	// x01: 1
+	val, exists = wire_vals["x01"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for x01")
+	}
+
+	// x02: 0
+	val, exists = wire_vals["x02"]
+	if !exists || val != 0 {
+		t.Errorf("Failed for x02")
+	}
+
+	// x03: 1
+	val, exists = wire_vals["x03"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for x03")
+	}
+
+	// y00: 1
+	val, exists = wire_vals["y00"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for y00")
+	}
+
+	// y01: 0
+	val, exists = wire_vals["y01"]
+	if !exists || val != 0 {
+		t.Errorf("Failed for y01")
+	}
+
+	// y02: 1
+	val, exists = wire_vals["y02"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for y02")
+	}
+
+	// y03: 1
+	val, exists = wire_vals["y03"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for y03")
+	}
+}
+
+func TestSet_x_y_2(t *testing.T) {
+	wire_vals := map[string]int{}
+	Set_x_y(wire_vals, 8, 0)
+
+	// x03: 1
+	val, exists := wire_vals["x03"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for x03")
+	}
+	// x04: 0
+	val, exists = wire_vals["x04"]
+	if !exists || val != 0 {
+		t.Errorf("Failed for x04")
+	}
+	// x02: 0
+	val, exists = wire_vals["x02"]
+	if !exists || val != 0 {
+		t.Errorf("Failed for x02")
+	}
+
+	wire_vals = map[string]int{}
+	Set_x_y(wire_vals, 7, 0)
+
+	// x02: 1
+	val, exists = wire_vals["x02"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for x02")
+	}
+	// x03: 0
+	val, exists = wire_vals["x03"]
+	if !exists || val != 0 {
+		t.Errorf("Failed for x03")
+	}
+
+	wire_vals = map[string]int{}
+	Set_x_y(wire_vals, 9, 0)
+
+	// x03: 1
+	val, exists = wire_vals["x03"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for x03")
+	}
+	// x04: 0
+	val, exists = wire_vals["x04"]
+	if !exists || val != 0 {
+		t.Errorf("Failed for x04")
+	}
+	// x00: 1
+	val, exists = wire_vals["x00"]
+	if !exists || val != 1 {
+		t.Errorf("Failed for x00")
+	}
+	// x02: 0
+	val, exists = wire_vals["x02"]
+	if !exists || val != 0 {
+		t.Errorf("Failed for x02")
 	}
 }

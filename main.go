@@ -119,7 +119,7 @@ func main() {
 		result_2_str = day23.Solve2(input)
 	case "24":
 		result_1 = day24.Solve1(input)
-		result_2 = day24.Solve2(input)
+		result_2_str = day24.Solve2(input)
 	default:
 		fmt.Printf("Solution for day %s is not implemented.\n", day)
 		os.Exit(1)
