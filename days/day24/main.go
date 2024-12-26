@@ -41,44 +41,6 @@ func Solve2(input_lines string) string {
 		swaps_list = new_swaps_list
 	}
 
-	// wire_gate_list := []string{}
-	// for gate, _ := range wire_gates {
-	// 	wire_gate_list = append(wire_gate_list, gate)
-	// }
-	// answer := [][2]string{}
-
-	// for i := 0; i < len(wire_gate_list); i++ {
-	// 	for j := i + 1; j < len(wire_gate_list); j++ {
-	// 		for k := j + 1; k < len(wire_gate_list); k++ {
-	// 			for l := k + 1; l < len(wire_gate_list); l++ {
-	// 				for m := l + 1; m < len(wire_gate_list); m++ {
-	// 					println("m is", m)
-	// 					for n := m + 1; n < len(wire_gate_list); n++ {
-	// 						for o := n + 1; o < len(wire_gate_list); o++ {
-	// 							println("o is:", o)
-	// 							for p := o + 1; p < len(wire_gate_list); p++ {
-	// 								// println("p is ", p)
-	// 								swap1 := [2]string{wire_gate_list[i], wire_gate_list[j]}
-	// 								swap2 := [2]string{wire_gate_list[k], wire_gate_list[l]}
-	// 								swap3 := [2]string{wire_gate_list[m], wire_gate_list[n]}
-	// 								swap4 := [2]string{wire_gate_list[o], wire_gate_list[p]}
-
-	// 								swaps := [][2]string{swap1, swap2, swap3, swap4}
-
-	// 								if valid_up_plus_swap(44, wire_gates, swaps) {
-	// 									// panic("it worked!")
-	// 									answer = swaps
-	// 								}
-
-	// 							}
-	// 						}
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 	answer := swaps_list[0]
 	gates_swapped := []string{}
 	for _, swap := range answer {
