@@ -1,6 +1,7 @@
 package day24
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"sort"
@@ -16,7 +17,7 @@ func Solve1(input_lines string) int {
 	return get_z_output(wire_vals, wire_gates)
 }
 
-var max_swaps int = 4
+var max_swaps int = 5
 
 func Solve2(input_lines string) string {
 	wire_vals, wire_gates := parse_input(input_lines)
@@ -24,32 +25,81 @@ func Solve2(input_lines string) string {
 
 	swaps_list := [][][2]string{[][2]string{}}
 	// potential_swaps = get_possible_swaps(wire_gates, potential_swaps)
-	for _, swap := range get_possible_swaps(wire_gates, [][2]string{}) {
-		swaps_list = append(swaps_list, [][2]string{swap})
-	}
+	// for _, swap := range get_possible_swaps(wire_gates, [][2]string{}) {
+	// 	swaps_list = append(swaps_list, [][2]string{swap})
+	// }
 
 	for i := 0; i < 44; i++ {
 		println("Checking i", i)
 		println("Swap list len is", len(swaps_list))
+		for _, x := range swaps_list {
+			for _, y := range x {
+				fmt.Printf("%s,", y)
+			}
+			fmt.Printf("\n")
+		}
+		println("")
 
 		new_swaps_list := [][][2]string{}
+		seen_here := map[string]struct{}{}
 		for _, swaps := range swaps_list {
+			// if slices.Contains(seen_here, swaps) {
+			// 	continue
+			// }
 			println("in here")
-			new_swaps_list = append(new_swaps_list, check_and_maybe_swap(wire_gates, swaps, i, 1)...)
+
+			// recursive
+			// new_swaps_list = append(new_swaps_list, check_and_maybe_swap(wire_gates, swaps, i, 1)...)
+			key := swaps_to_string(swaps)
+			_, seen := seen_here[key]
+			if seen {
+				continue
+			}
+			seen_here[key] = struct{}{}
+
+			if valid_up_plus_swap(i, wire_gates, swaps) {
+				new_swaps_list = append(new_swaps_list, swaps)
+			} else {
+				if len(swaps) >= max_swaps {
+					// Too many swaps already, ignore
+
+				} else {
+					// Try another swap
+					for _, new_swap := range get_possible_swaps(wire_gates, swaps) {
+						new_swaps := append(swaps, new_swap)
+
+						if valid_up_plus_swap(i, wire_gates, new_swaps) {
+							new_swaps_list = append(new_swaps_list, new_swaps)
+						}
+						// new_swaps_list = append(new_swaps_list, check_and_maybe_swap(wire_gates, new_swaps, z_test, depth-1)...)
+					}
+				}
+			}
 
 		}
 		swaps_list = new_swaps_list
 	}
 
-	answer := swaps_list[0]
+	// answer := swaps_list[0]
+	// gates_swapped := []string{}
+	// for _, swap := range answer {
+	// 	gates_swapped = append(gates_swapped, swap[0])
+	// 	gates_swapped = append(gates_swapped, swap[1])
+	// }
+
+	// sort.Strings(gates_swapped)
+
+	return swaps_to_string(swaps_list[0])
+}
+
+func swaps_to_string(swaps [][2]string) string {
 	gates_swapped := []string{}
-	for _, swap := range answer {
+	for _, swap := range swaps {
 		gates_swapped = append(gates_swapped, swap[0])
 		gates_swapped = append(gates_swapped, swap[1])
 	}
 
 	sort.Strings(gates_swapped)
-
 	return strings.Join(gates_swapped, ",")
 }
 
@@ -127,7 +177,7 @@ func valid_up_plus_swap(z_end int, wire_gates map[string]gate, swaps [][2]string
 			}
 		}
 	}
-	valid := valid_up_to(z_end, wire_gates)
+	valid := valid_up_to_test(z_end, wire_gates)
 
 	// Undo swaps
 	for _, swaps := range swaps {
@@ -152,9 +202,17 @@ func valid_up_to(z_end int, wire_gates map[string]gate) bool {
 
 	z_out := get_z_output(wire_vals, wire_gates)
 
-	if z_out != (x + y) {
-		return false
+	z_expected := x + y
+	for i := 0; i <= z_end; i++ {
+		power := int(math.Pow(2, float64(i)))
+		if (power & z_out) != (power & z_expected) {
+			return false
+		}
 	}
+	return true
+	// if z_out != (x + y) {
+	// 	return false
+	// }
 
 	// for x := 0; x < z_end; x++ {
 	// 	for y := 0; y < z_end; y++ {
@@ -169,7 +227,7 @@ func valid_up_to(z_end int, wire_gates map[string]gate) bool {
 	// 	}
 
 	// }
-	return true
+	// return true
 }
 
 func valid_up_to_test(z_end int, wire_gates map[string]gate) bool {
@@ -177,31 +235,85 @@ func valid_up_to_test(z_end int, wire_gates map[string]gate) bool {
 		return true
 	}
 
+	sum := 0
+	for i := 0; i < z_end; i++ {
+		sum += int(math.Pow(2, float64(i)))
+	}
+
 	var x int
 	var y int
 
-	// Check carry
-	x = int(math.Pow(2, float64(z_end))) - 1
-	y = 1
+	// Check 1+1
+	x = int(math.Pow(2, float64(z_end)))
+	y = int(math.Pow(2, float64(z_end)))
 	wire_vals := map[string]int{}
 	Set_x_y(wire_vals, x, y)
 	z_out := get_z_output(wire_vals, wire_gates)
-	if z_out != (x + y) {
-		return false
+	z_expected := x + y
+	for i := 0; i <= z_end; i++ {
+		power := int(math.Pow(2, float64(i)))
+		if (power & z_out) != (power & z_expected) {
+			return false
+		}
 	}
 
-	x = 1
-	y = int(math.Pow(2, float64(z_end))) - 1
+	x = int(math.Pow(2, float64(z_end-1)))
+	y = int(math.Pow(2, float64(z_end-1)))
 	wire_vals = map[string]int{}
 	Set_x_y(wire_vals, x, y)
 	z_out = get_z_output(wire_vals, wire_gates)
-	if z_out != (x + y) {
-		return false
+	z_expected = x + y
+	for i := 0; i <= z_end; i++ {
+		power := int(math.Pow(2, float64(i)))
+		if (power & z_out) != (power & z_expected) {
+			return false
+		}
+	}
+
+	// check 0+1 and 1+0
+	x = int(math.Pow(2, float64(z_end)))
+	y = 1
+	wire_vals = map[string]int{}
+	Set_x_y(wire_vals, x, y)
+	z_out = get_z_output(wire_vals, wire_gates)
+	z_expected = x + y
+	for i := 0; i <= z_end; i++ {
+		power := int(math.Pow(2, float64(i)))
+		if (power & z_out) != (power & z_expected) {
+			return false
+		}
+	}
+
+	x = int(math.Pow(2, float64(z_end)))
+	y = 1
+	wire_vals = map[string]int{}
+	Set_x_y(wire_vals, x, y)
+	z_out = get_z_output(wire_vals, wire_gates)
+	z_expected = x + y
+	for i := 0; i <= z_end; i++ {
+		power := int(math.Pow(2, float64(i)))
+		if (power & z_out) != (power & z_expected) {
+			return false
+		}
+	}
+
+	// check 0 + 0
+	x = int(math.Pow(2, float64(z_end-1)))
+	y = 1
+	wire_vals = map[string]int{}
+	Set_x_y(wire_vals, x, y)
+	z_out = get_z_output(wire_vals, wire_gates)
+	z_expected = x + y
+	for i := 0; i <= z_end; i++ {
+		power := int(math.Pow(2, float64(i)))
+		if (power & z_out) != (power & z_expected) {
+			return false
+		}
 	}
 
 	// Undo swap
 
-	return valid_up_to(z_end-1, wire_gates)
+	return true
 }
 
 func Set_x_y(wire_vals map[string]int, x int, y int) {
